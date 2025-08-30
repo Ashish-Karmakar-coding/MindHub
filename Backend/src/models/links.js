@@ -11,3 +11,5 @@ const linkSchema = new mongoose.Schema({
         required: true
     }
 }, { timestamps: true })
+
+export const Link = mongoose.model('Link', linkSchema);
