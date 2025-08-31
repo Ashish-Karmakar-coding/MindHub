@@ -6,6 +6,7 @@ import {
     updateProfile,
     checkUser,
 } from '../controllers/user.controller.js';
+import {tokenCheck} from '../middlewares/tokenCheck.middleware.js'
 
 const Router = express.Router();
 
@@ -13,8 +14,8 @@ Router.post("/login",login)
 Router.post("/signup",signup)
 Router.get("/logout",logout)
 
-Router.put("/update",updateProfile)
+Router.put("/update",tokenCheck,updateProfile)
 
-Router.get("/check-user",checkUser)
+Router.get("/check-user",tokenCheck,checkUser)
 
 export default Router;
