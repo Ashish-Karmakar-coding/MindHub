@@ -1,4 +1,8 @@
 {
+  "type": "module",
+   "scripts": {
+    "dev": "nodemon src/main.js",
+    "start": "node src/main.js"},
   "dependencies": {
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.7.0",
