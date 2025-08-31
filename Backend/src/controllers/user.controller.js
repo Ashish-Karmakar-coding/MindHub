@@ -66,7 +66,7 @@ const login = async (req, res) => {
         }
 
         generateToken(user._id,res)
-        
+
         return res.status(200).json({
             message:"Login successful",
             user:{
@@ -81,9 +81,44 @@ const login = async (req, res) => {
     }
 };
 
-const logout = async (req, res) => {};
+const logout = async (req, res) => {
+    try {
+        
+        res.cookie('jwt','',{
+            maxAge: 0,
+            httpOnly: true,
+            sameSite: 'Strict',
+            secure: process.env.NODE_ENV !== 'development',
+        })
 
-const updateProfile = async (req, res) => {};
+        return res.status(200).json({message:"Logout successful"})
+
+    } catch (error) {
+        return res.status(500).json({ message: "Internal Server Error" , error: error.message });
+    }
+};
+
+const updateProfile = async (req, res) => {
+    const {name} = req.body;
+    const userId = req.user._id;
+    if(!name){
+        return res.status(400).json({message:"Name is required"})
+    }
+    try {
+        updatedUser = await User.findByIdAndUpdate(
+            userId,
+            {name},
+            {new:true})
+            if(!updatedUser){
+                return res.status(404).json({message:"User not found"})
+            }
+    
+    return res.status(200).json({message:"User updated successfully",success:true, user: updatedUser})
+        
+    } catch (error) {
+        return res.status(500).json({ message: "Internal Server Error" , error: error.message });
+    }
+};
 
 const checkUser = async (req, res) => {};
 
