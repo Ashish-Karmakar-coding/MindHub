@@ -11,6 +11,11 @@ const addLink = async (req,res) =>{
 
     try {
         
+        alreadyExists = await Link.findOne({user_id: userId, url: url});
+        if(alreadyExists){
+            return res.status(409).json({message: 'Conflict: Link already exists'});
+        }
+
         const newLink = new Link({
             user_id: userId,
             url: url
