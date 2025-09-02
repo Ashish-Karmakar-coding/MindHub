@@ -27,7 +27,19 @@ try {
 }
 
 const getFiles = async (req,res) =>{
+    const userId = req.user._id
+    try {
 
+        const files = await File.find({ uploadedBy: userId }).sort({ createdAt: -1 });
+        if (!files) {
+            return res.status(404).json({ message: "No files found." });
+        }
+
+        res.status(200).json(files);
+
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
 }
 
 const deleteFile = async (req,res) =>{
