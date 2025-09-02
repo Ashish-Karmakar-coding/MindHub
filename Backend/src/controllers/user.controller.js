@@ -127,7 +127,7 @@ const checkUser = async (req, res) => {
             return res.status(400).json({message:"user not found"})
         }
     
-        return res.status(200).json(user)
+        res.status(200).json(user)
     } catch (error) {
         return res.status(500).json({ message: "Internal Server Error" , error: error.message });
     }
