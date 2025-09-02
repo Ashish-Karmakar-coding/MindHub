@@ -7,7 +7,7 @@ import {tokenCheck} from '../middlewares/tokenCheck.middleware.js'
 
 const router = express.Router();
 
-router.put("/add-link",tokenCheck,addLink)
+router.post("/add-link",tokenCheck,addLink)
 
 router.get("/get-link",tokenCheck,getLinks)
 
