@@ -25,7 +25,17 @@ const addNotes = async(req,res) =>{
 }
 
 const getNotes = async(req,res) =>{
-    const {userId} = req.user;
+    const userId = req.user._id;
+    try {
+        const notes = await Note.find({user_id: userId}).sort({createdAt: -1});
+        if (!notes) {
+            return res.status(404).json({ message: 'No notes found' });
+        }
+        res.status(200).json(notes) 
+        
+    } catch (error) {
+        return res.status(500).json({message: error.message});
+    }
 }
 
 const deleteNote = async (req,res) =>{
