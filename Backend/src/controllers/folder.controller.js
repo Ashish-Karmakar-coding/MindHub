@@ -41,6 +41,10 @@ const getAllFolders = async (req,res) =>{
 
 }
 
+const getAllFileInFolder = async (req,res) =>{
+
+}
+
 const addFileToFolder = async(req,res) =>{
 
 } 
@@ -49,4 +53,4 @@ const removeFileFromFolder = async(req,res) =>{
 
 }
 
-export {createFolder, deleteFolder, getAllFolders , addFileToFolder, removeFileFromFolder};
+export {createFolder, deleteFolder, getAllFolders, getAllFileInFolder , addFileToFolder, removeFileFromFolder};
