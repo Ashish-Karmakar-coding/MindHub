@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import userRouter from './routes/users.route.js';
 import { connectDB } from './database/connectDB.js';
 import linksRouter from './routes/links.router.js';
+import notesRouter from './routes/notes.router.js';
 
 
 dotenv.config();
@@ -17,6 +18,7 @@ app.use(cookieParser());
 
 app.use("/api/users",userRouter)
 app.use("/api/links",linksRouter)
+app.use("/api/notes",notesRouter)
 
 
 app.listen(PORT,()=>{

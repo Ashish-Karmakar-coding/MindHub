@@ -3,4 +3,9 @@ import {addNotes,getNotes,deleteNote,editNote} from '../controllers/notes.contro
 
 const router = express.Router()
 
-router.post()
+router.post("/addNotes", addNotes);
+router.get("/getNotes", getNotes);
+router.delete("/deleteNote/:id", deleteNote);
+router.put("/editNote/:id", editNote);
+
+export default router;
