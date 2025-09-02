@@ -1,5 +1,5 @@
 import {cloudinary} from '../utils/cloudinary.util.js';
-import {File} from '../models/folders.model.js';
+import {File} from '../models/file.model.js';
 
 const uploadFile = async (req,res) =>{
 

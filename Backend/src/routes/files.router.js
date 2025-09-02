@@ -1,5 +1,5 @@
 import express from 'express';
-import {uploadFile,getFiles,deleteFile} from '../controllers/folders.controller.js';
+import {uploadFile,getFiles,deleteFile} from '../controllers/file.controller.js';
 import { tokenCheck } from '../middlewares/tokenCheck.middleware.js';
 import { upload } from '../middlewares/multer.js';
 

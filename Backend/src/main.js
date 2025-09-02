@@ -6,7 +6,7 @@ import userRouter from './routes/users.route.js';
 import { connectDB } from './database/connectDB.js';
 import linksRouter from './routes/links.router.js';
 import notesRouter from './routes/notes.router.js';
-import folderRouter from './routes/folders.router.js';
+import fileRouter from './routes/files.router.js';
 
 
 dotenv.config();
@@ -20,7 +20,7 @@ app.use(cookieParser());
 app.use("/api/users",userRouter)
 app.use("/api/links",linksRouter)
 app.use("/api/notes",notesRouter)
-app.use("/api/folders",folderRouter)
+app.use("/api/files",fileRouter)
 
 
 app.listen(PORT,()=>{
