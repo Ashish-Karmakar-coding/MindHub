@@ -44,6 +44,28 @@ const getFiles = async (req,res) =>{
 
 const deleteFile = async (req,res) =>{
 
+    try {
+    const { id } = req.params; // MongoDB file _id
+
+    // 1. Find file in DB
+    const file = await File.findById(id);
+    if (!file) {
+      return res.status(404).json({ message: "File not found" });
+    }
+
+    // 2. Delete from Cloudinary
+    await cloudinary.uploader.destroy(file.public_id, {
+      resource_type: "auto", // handles images, pdfs, videos, etc.
+    });
+
+    // 3. Delete from MongoDB
+    await file.deleteOne();
+
+    res.json({ message: "File deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+
 }
 
 export {uploadFile,getFiles,deleteFile};
