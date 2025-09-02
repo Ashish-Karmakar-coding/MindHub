@@ -1,18 +1,18 @@
 import mongoose from "mongoose";
-import { User } from './user.model.js';
 
-const folderSchema = new mongoose.Schema(
+const fileSchema = new mongoose.Schema(
   {
-    user_id: {
+    filename: { type: String, required: true },   // Original file name
+    url: { type: String, required: true },        // Cloudinary URL
+    public_id: { type: String, required: true },  // Cloudinary ID (needed for delete/update)
+    format: { type: String },                     // File type (jpg, png, pdf, etc.)
+    size: { type: Number },                       // File size in bytes
+    uploadedBy: {                                 // Link file to a user (optional)
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
-    },
-    folder: {
-      type: String,
     },
   },
   { timestamps: true }
 );
 
-export const Folder = mongoose.model("Folder", folderSchema);
+export const File = mongoose.model("File", fileSchema);
