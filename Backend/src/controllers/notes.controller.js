@@ -25,7 +25,7 @@ const addNotes = async(req,res) =>{
 }
 
 const getNotes = async(req,res) =>{
-
+    const {userId} = req.user;
 }
 
 const deleteNote = async (req,res) =>{
