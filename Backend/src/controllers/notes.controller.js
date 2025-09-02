@@ -31,15 +31,26 @@ const getNotes = async(req,res) =>{
         if (!notes) {
             return res.status(404).json({ message: 'No notes found' });
         }
+
         res.status(200).json(notes) 
-        
+
     } catch (error) {
         return res.status(500).json({message: error.message});
     }
 }
 
 const deleteNote = async (req,res) =>{
+    const {id:noteId} = req.params
 
+    try {
+        
+        const deleteNote = await Note.findByIdAndDelete(noteId)
+        if(!deleteNote) return res.status(404).json({message: "Note not found"});
+        
+        return res.status(200).json({message: "Note deleted successfully"});
+    } catch (error) {
+        return res.status(500).json({message: error.message});
+    }
 }
 
 const editNote = async (req,res) =>{
