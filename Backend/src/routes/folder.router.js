@@ -4,10 +4,10 @@ import { tokenCheck } from '../middlewares/tokenCheck.middleware.js';
 
 const router = express.Router()
 
-router.post("/create-folder", createFolder);
-router.delete("/delete-folder/:folderId", deleteFolder);
-router.get("/get-all-folders", getAllFolders);
-router.post("/add-file", addFileToFolder);
-router.post("/remove-file", removeFileFromFolder);
+router.post("/create-folder",tokenCheck, createFolder);
+router.delete("/delete-folder/:folderId",tokenCheck, deleteFolder);
+router.get("/get-all-folders",tokenCheck, getAllFolders);
+router.post("/add-file",tokenCheck, addFileToFolder);
+router.post("/remove-file",tokenCheck, removeFileFromFolder);
 
 export default router;
