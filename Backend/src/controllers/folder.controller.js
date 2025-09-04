@@ -59,7 +59,7 @@ const getAllFolders = async (req,res) =>{
         const userId = req.user._id
 
         const folders = await Folder.find({user_id:userId}).sort({createdAt: -1})
-        
+
         if (!folders) {
             return res.status(402).json({message:"Folders not found"})
         }
@@ -77,6 +77,36 @@ const getAllFileInFolder = async (req,res) =>{
 }
 
 const addFileToFolder = async(req,res) =>{
+
+   try {
+     const userId = req.user._id
+     const {fileId,folderId} = req.body
+ 
+     if (!userId) {
+         return res.status(400).json({message:"Unauthorized"})
+     }
+     if (!folderId) {
+         return res.status(402).json({message:"Folder is required"})
+     }
+ 
+     const file = await File.findById(fileId)
+ 
+     const folder = await Folder.findByIdAndUpdate(
+       folderId,
+       { $push: { files: file._id } },  // Push file into array
+       { new: true }                    // Return updated folder
+     ).populate("files"); // optional: populate files info
+ 
+     if (!folder) {
+       return res.status(404).json({ message: "Folder not found" });
+     }
+ 
+     res.json({ message: "File added to folder", folder });
+ 
+ 
+   } catch (error) {
+        return res.status(502).json({message:error.message})
+   }
 
 } 
 
