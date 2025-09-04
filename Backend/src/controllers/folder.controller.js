@@ -111,7 +111,24 @@ const addFileToFolder = async(req,res) =>{
 } 
 
 const removeFileFromFolder = async(req,res) =>{
+    try {
+    const { folderId, fileId } = req.body; // IDs from frontend
 
+    // Remove fileId from folder.files
+    const folder = await Folder.findByIdAndUpdate(
+      folderId,
+      { $pull: { files: fileId } }, // Remove file reference
+      { new: true }                 // Return updated folder
+    ).populate("files"); // optional: show remaining files
+
+    if (!folder) {
+      return res.status(404).json({ message: "Folder not found" });
+    }
+
+    res.json({ message: "File removed from folder", folder });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 }
 
 export {createFolder, deleteFolder, getAllFolders, getAllFileInFolder , addFileToFolder, removeFileFromFolder};
