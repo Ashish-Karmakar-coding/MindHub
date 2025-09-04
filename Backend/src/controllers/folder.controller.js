@@ -35,6 +35,22 @@ const createFolder = async (req,res) =>{
 
 const deleteFolder = async (req,res) =>{
 
+    const {folderId} = req.params
+    try {
+        
+        const folder = await Folder.findByIdAndDelete(folderId)
+        if (!folder) {
+            return res.status(402).json({message:"Folder not found"})
+        }
+
+        return res.status(200).message({message:"Folder deleted successfully"})
+        
+
+    } catch (error) {
+        return res.status(500).json({message:error.message})
+    }
+
+
 } 
 
 const getAllFolders = async (req,res) =>{
