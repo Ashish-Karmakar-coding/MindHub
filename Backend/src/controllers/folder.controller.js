@@ -55,6 +55,21 @@ const deleteFolder = async (req,res) =>{
 
 const getAllFolders = async (req,res) =>{
 
+    try {
+        const userId = req.user._id
+
+        const folders = await Folder.find({user_id:userId}).sort({createdAt: -1})
+        
+        if (!folders) {
+            return res.status(402).json({message:"Folders not found"})
+        }
+
+        res.status(201).json(folders)
+
+    } catch (error) {
+        return res.status(500).json({message: "Server Error"});
+    }
+
 }
 
 const getAllFileInFolder = async (req,res) =>{
