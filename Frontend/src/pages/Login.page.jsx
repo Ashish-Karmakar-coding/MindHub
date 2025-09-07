@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 
-const Signup = () => {
+const Login = () => {
   const [formData, setFormData] = useState({
-    fullname: '',
     email: '',
     password: ''
   });
@@ -24,8 +23,6 @@ const Signup = () => {
 
   const validateForm = () => {
     const newErrors = {};
-
-    if (!formData.fullname.trim()) newErrors.fullname = 'Full name is required';
     
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
@@ -35,8 +32,6 @@ const Signup = () => {
     
     if (!formData.password) {
       newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
     }
 
     setErrors(newErrors);
@@ -48,7 +43,7 @@ const Signup = () => {
     if (validateForm()) {
       // Form is valid, proceed with submission
       console.log('Form submitted:', formData);
-      alert('Signup successful!');
+      alert('Login successful!');
     }
   };
 
@@ -61,27 +56,11 @@ const Signup = () => {
               <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-800">Create Account</h2>
-          <p className="mt-1 text-sm text-gray-500">Get started with our service</p>
+          <h2 className="text-2xl font-bold text-gray-800">Welcome Back</h2>
+          <p className="mt-1 text-sm text-gray-500">Sign in to your account</p>
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="fullname" className="block text-sm font-medium text-gray-700 mb-1">
-              Full Name
-            </label>
-            <input
-              type="text"
-              id="fullname"
-              name="fullname"
-              value={formData.fullname}
-              onChange={handleChange}
-              className={`w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 p-2.5 border ${errors.fullname ? 'border-red-500' : ''}`}
-              placeholder="John Doe"
-            />
-            {errors.fullname && <p className="mt-1 text-xs text-red-600">{errors.fullname}</p>}
-          </div>
-          
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
               Email Address
@@ -130,22 +109,42 @@ const Signup = () => {
             </button>
             {errors.password && <p className="mt-1 text-xs text-red-600">{errors.password}</p>}
           </div>
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <input
+                id="remember-me"
+                name="remember-me"
+                type="checkbox"
+                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+              />
+              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+                Remember me
+              </label>
+            </div>
+
+            <div className="text-sm">
+              <a href="/forgot-password" className="font-medium text-indigo-600 hover:text-indigo-500">
+                Forgot password?
+              </a>
+            </div>
+          </div>
           
           <div>
             <button
               type="submit"
               className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 shadow-md"
             >
-              Sign Up
+              Sign In
             </button>
           </div>
         </form>
         
         <div className="mt-5 text-center">
           <p className="text-xs text-gray-600">
-            Already have an account?{' '}
-            <a href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
-              Sign in
+            Don't have an account?{' '}
+            <a href="/signup" className="font-medium text-indigo-600 hover:text-indigo-500">
+              Sign up
             </a>
           </p>
         </div>
@@ -154,4 +153,4 @@ const Signup = () => {
   );
 };
 
-export default Signup;
+export default Login;
