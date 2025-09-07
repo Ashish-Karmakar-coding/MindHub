@@ -7,7 +7,7 @@ const router = express.Router()
 router.post("/create-folder",tokenCheck, createFolder);
 router.delete("/delete-folder/:folderId",tokenCheck, deleteFolder);
 router.get("/get-all-folders",tokenCheck, getAllFolders);
-router.get("/get-all-files-in-folder",tokenCheck,getAllFileInFolder)
+router.get("/get-all-files-in-folder/:folderId",tokenCheck,getAllFileInFolder)
 router.post("/add-file",tokenCheck, addFileToFolder);
 router.post("/remove-file",tokenCheck, removeFileFromFolder);
 
