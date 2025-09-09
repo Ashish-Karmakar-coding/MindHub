@@ -1,79 +1,78 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import { LogOut, User } from 'lucide-react';
 
 const Navbar = () => {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  
-  // Sample user data (you would replace this with actual user data)
-  const user = {
-    name: "Alex Johnson",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&q=80"
+  const [isHovered, setIsHovered] = useState(false);
+  const timeoutRef = useRef(null);
+
+  const handleMouseEnter = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    setIsHovered(true);
+  };
+
+  const handleMouseLeave = () => {
+    timeoutRef.current = setTimeout(() => {
+      setIsHovered(false);
+    }, 500); // 500ms delay before hiding
   };
 
   const handleLogout = () => {
-    // Handle logout logic here
-    console.log("User logged out");
-    alert("You have been logged out");
+    console.log('Logout clicked');
+    // Add your logout logic here
+    alert('Logout functionality would be implemented here');
   };
 
   return (
-    <nav className="bg-white shadow-lg relative z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          {/* Website Name */}
-          <div className="flex items-center">
-            <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-              MindHub
+    <div className="w-full">
+      <nav className="bg-white/10 backdrop-blur-xl border-b border-white/20 px-6 py-1.5 flex justify-between items-center sticky top-0 z-50">
+        {/* Logo */}
+        <div className="flex items-center">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent hover:scale-105 transition-transform duration-300 cursor-pointer">
+            MindHub
+          </h1>
+        </div>
+
+        {/* Profile Section */}
+        <div 
+          className="relative"
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
+          <div className="flex items-center space-x-3 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 transition-all duration-300 cursor-pointer hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20">
+            {/* Profile Picture */}
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center border-2 border-white/30 hover:border-white/50 transition-all duration-300 hover:scale-105">
+              <User className="w-5 h-5 text-white" />
+            </div>
+            
+            {/* Username */}
+            <span className="text-black font-medium text-m">
+              John Doe
             </span>
           </div>
 
-          {/* User Profile Section */}
-          <div className="flex items-center">
-            <div 
-              className="relative"
-              onMouseEnter={() => setIsDropdownOpen(true)}
-              onMouseLeave={() => setIsDropdownOpen(false)}
-            >
-              <button className="flex items-center space-x-2 focus:outline-none">
-                <img
-                  className="h-8 w-8 rounded-full object-cover border-2 border-indigo-100"
-                  src={user.avatar}
-                  alt="User profile"
-                />
-                <span className="text-sm font-medium text-gray-700">{user.name}</span>
-                <svg 
-                  className={`h-4 w-4 text-gray-500 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
+          {/* Logout Dropdown */}
+          <div className={`absolute right-0 top-full mt-2 transition-all duration-300 ${
+            isHovered 
+              ? 'opacity-100 translate-y-0 pointer-events-auto' 
+              : 'opacity-0 -translate-y-2 pointer-events-none'
+          }`}>
+            <div className="bg-white/95 backdrop-blur-xl rounded-xl shadow-xl border border-white/20 overflow-hidden min-w-[140px]">
+              <button
+                onClick={handleLogout}
+                className="w-full px-4 py-3 flex items-center space-x-3 text-gray-700 hover:bg-red-50 hover:text-red-600 transition-all duration-200 text-sm font-medium"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Logout</span>
               </button>
-
-              {/* Dropdown Menu */}
-              {isDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
-                  <button
-                    onClick={handleLogout}
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors flex items-center"
-                  >
-                    <svg 
-                      className="h-4 w-4 mr-2 text-gray-500" 
-                      fill="none" 
-                      viewBox="0 0 24 24" 
-                      stroke="currentColor"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                    Logout
-                  </button>
-                </div>
-              )}
             </div>
           </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+
+
+    </div>
   );
 };
 
