@@ -10,7 +10,7 @@ function App() {
     <>
     <Navbar />
       <Signup />
-      <Login />
+      {/* <Login /> */}
     </>
   )
 }
