@@ -4,6 +4,7 @@ import Signup from './pages/Signup.page.jsx'
 import Login from './pages/Login.page.jsx'
 import Navbar from './components/navbar.jsx'
 import Sidebar from './components/sidebar.jsx'
+import Dashboard from '/pages/Dashboard.page.jsx'
 
 function App() {
 
