@@ -3,6 +3,7 @@ import { useAuthStore } from '../lib/authStore.js';
 import { axiosInstance } from '../axios/axios.js';
 import { toast } from 'react-hot-toast';
 
+
 function Notes() {
   const { authUser } = useAuthStore();
   const [notes, setNotes] = useState([]);
