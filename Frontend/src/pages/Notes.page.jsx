@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useAuthStore } from '../lib/authStore.js';
+import { useAuthStore } from '../lib/authStore'; // Fixed import path
 import { axiosInstance } from '../axios/axios.js';
 import { toast } from 'react-hot-toast';
-
 
 function Notes() {
   const { authUser } = useAuthStore();
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
+  const [isEditing, setIsEditing] = useState(false); // Added separate loading state for editing
   const [editingNote, setEditingNote] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   
@@ -30,7 +30,9 @@ function Notes() {
       setNotes(response.data);
     } catch (error) {
       console.error('Error fetching notes:', error);
-      toast.error('Failed to fetch notes');
+      if (error.response?.status !== 404) { // Don't show error for empty notes
+        toast.error('Failed to fetch notes');
+      }
     } finally {
       setLoading(false);
     }
@@ -39,27 +41,31 @@ function Notes() {
   const handleAddNote = async (e) => {
     e.preventDefault();
     if (!title.trim()) {
-      toast.error('Title is required');
-      return;
+        toast.error('Title is required');
+        return;
     }
 
     setIsAdding(true);
     try {
-      const response = await axiosInstance.post('/notes/addNotes', {
-        title,
-        content
-      });
-      
-      setNotes(prevNotes => [response.data.note, ...prevNotes]);
-      setTitle('');
-      setContent('');
-      setShowAddForm(false);
-      toast.success('Note added successfully');
+        const response = await axiosInstance.post('/notes/addNotes', {
+            title: title.trim(),
+            content: content.trim()
+        });
+        
+        setNotes(prevNotes => [response.data.note, ...prevNotes]);
+        setTitle('');
+        setContent('');
+        setShowAddForm(false);
+        toast.success('Note added successfully');
     } catch (error) {
-      console.error('Error adding note:', error);
-      toast.error(error.response?.data?.message || 'Failed to add note');
+        console.error('Error adding note:', error);
+        console.error('Error response:', error.response);
+        
+        const errorMessage = error.response?.data?.message || 
+                           'Failed to add note. Please try again.';
+        toast.error(errorMessage);
     } finally {
-      setIsAdding(false);
+        setIsAdding(false);
     }
   };
 
@@ -70,16 +76,18 @@ function Notes() {
       return;
     }
 
+    setIsEditing(true);
     try {
-      await axiosInstance.put(`/notes/editNote/${editingNote._id}`, {
-        title,
-        content
+      const response = await axiosInstance.put(`/notes/editNote/${editingNote._id}`, {
+        title: title.trim(),
+        content: content.trim()
       });
       
+      // Use the updated note from response
       setNotes(prevNotes => 
         prevNotes.map(note => 
           note._id === editingNote._id 
-            ? { ...note, title, content, updatedAt: new Date().toISOString() }
+            ? response.data.note // Use the note from response
             : note
         )
       );
@@ -87,10 +95,13 @@ function Notes() {
       setEditingNote(null);
       setTitle('');
       setContent('');
+      setShowAddForm(false);
       toast.success('Note updated successfully');
     } catch (error) {
       console.error('Error updating note:', error);
       toast.error(error.response?.data?.message || 'Failed to update note');
+    } finally {
+      setIsEditing(false);
     }
   };
 
@@ -264,10 +275,10 @@ function Notes() {
                 <div className="flex gap-3">
                   <button
                     type="submit"
-                    disabled={isAdding}
+                    disabled={isAdding || isEditing}
                     className="flex-1 flex justify-center items-center py-2.5 px-4 border border-transparent rounded-lg text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isAdding ? (
+                    {(isAdding || isEditing) ? (
                       <>
                         <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

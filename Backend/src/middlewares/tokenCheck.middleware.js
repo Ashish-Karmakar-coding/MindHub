@@ -1,12 +1,6 @@
-import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
-import {User} from '../models/user.model.js';
-
-dotenv.config();
-
 export const tokenCheck = async (req, res, next) => {
     try {
-        const token = res.cookies.jwt
+        const token = req.cookies.jwt // Fixed: res.cookies -> req.cookies
         if(!token){
             return res.status(401).json({message: 'Unauthorized: No token provided'});
         }
@@ -25,6 +19,7 @@ export const tokenCheck = async (req, res, next) => {
         next();
 
     } catch (error) {
+        console.error('Token check error:', error);
         return res.status(500).json({message: 'Internal Server Error',
             error: error.message
         });

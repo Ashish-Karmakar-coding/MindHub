@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
+import { useAuthStore } from '../lib/authStore.js';
+import { useNavigate } from 'react-router-dom';
 
 const Signup = () => {
+  const { signUp, isSigningUp } = useAuthStore();
+  const navigate = useNavigate();
+  
   const [formData, setFormData] = useState({
-    fullname: '',
+    name: '', // Changed from fullname to name to match backend
     email: '',
     password: ''
   });
@@ -16,6 +21,13 @@ const Signup = () => {
       ...prev,
       [name]: value
     }));
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
   };
 
   const togglePasswordVisibility = () => {
@@ -25,7 +37,7 @@ const Signup = () => {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.fullname.trim()) newErrors.fullname = 'Full name is required';
+    if (!formData.name.trim()) newErrors.name = 'Name is required';
     
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
@@ -43,12 +55,19 @@ const Signup = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      // Form is valid, proceed with submission
-      console.log('Form submitted:', formData);
-      alert('Signup successful!');
+    if (!validateForm()) {
+      return;
+    }
+
+    try {
+      await signUp(formData);
+      // Navigation will be handled by the auth store after successful signup
+      // You can add additional navigation logic here if needed
+    } catch (error) {
+      // Error is already handled in the auth store with toast
+      console.error('Signup error:', error);
     }
   };
 
@@ -65,21 +84,24 @@ const Signup = () => {
           <p className="mt-1 text-sm text-gray-400">Get started with our service</p>
         </div>
         
-        <div onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="fullname" className="block text-sm font-medium text-gray-300 mb-1">
+            <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">
               Full Name
             </label>
             <input
               type="text"
-              id="fullname"
-              name="fullname"
-              value={formData.fullname}
+              id="name"
+              name="name"
+              value={formData.name}
               onChange={handleChange}
-              className={`w-full rounded-lg bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500 p-2.5 border ${errors.fullname ? 'border-red-500' : ''}`}
+              className={`w-full rounded-lg bg-gray-700 border text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500 p-2.5 ${
+                errors.name ? 'border-red-500' : 'border-gray-600'
+              }`}
               placeholder="John Doe"
+              disabled={isSigningUp}
             />
-            {errors.fullname && <p className="mt-1 text-xs text-red-400">{errors.fullname}</p>}
+            {errors.name && <p className="mt-1 text-xs text-red-400">{errors.name}</p>}
           </div>
           
           <div>
@@ -92,8 +114,11 @@ const Signup = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className={`w-full rounded-lg bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500 p-2.5 border ${errors.email ? 'border-red-500' : ''}`}
+              className={`w-full rounded-lg bg-gray-700 border text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500 p-2.5 ${
+                errors.email ? 'border-red-500' : 'border-gray-600'
+              }`}
               placeholder="you@example.com"
+              disabled={isSigningUp}
             />
             {errors.email && <p className="mt-1 text-xs text-red-400">{errors.email}</p>}
           </div>
@@ -108,13 +133,17 @@ const Signup = () => {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className={`w-full rounded-lg bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500 p-2.5 border ${errors.password ? 'border-red-500' : ''}`}
+              className={`w-full rounded-lg bg-gray-700 border text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500 p-2.5 ${
+                errors.password ? 'border-red-500' : 'border-gray-600'
+              }`}
               placeholder="••••••••"
+              disabled={isSigningUp}
             />
             <button
               type="button"
               className="absolute inset-y-0 right-0 pr-3 flex items-center mt-6"
               onClick={togglePasswordVisibility}
+              disabled={isSigningUp}
             >
               {showPassword ? (
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
@@ -134,18 +163,35 @@ const Signup = () => {
           <div>
             <button
               type="submit"
-              onClick={handleSubmit}
-              className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-md"
+              disabled={isSigningUp}
+              className="w-full flex justify-center items-center py-2.5 px-4 border border-transparent rounded-lg text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Sign Up
+              {isSigningUp ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Creating Account...
+                </>
+              ) : (
+                'Sign Up'
+              )}
             </button>
           </div>
-        </div>
+        </form>
         
         <div className="mt-5 text-center">
           <p className="text-xs text-gray-400">
             Already have an account?{' '}
-            <a href="/login" className="font-medium text-blue-400 hover:text-blue-300">
+            <a 
+              href="/login" 
+              className="font-medium text-blue-400 hover:text-blue-300 transition-colors duration-200"
+              onClick={(e) => {
+                e.preventDefault();
+                navigate('/login');
+              }}
+            >
               Sign in
             </a>
           </p>
