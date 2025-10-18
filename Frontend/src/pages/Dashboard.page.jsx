@@ -1,14 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../lib/authStore';
 import { useNoteStore } from '../lib/noteStore';
-import { 
-  IconNotes, 
-  IconTrendingUp, 
-  IconCalendar, 
-  IconPlus,
-  IconEdit,
-  IconTrash
-} from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 
 function Dashboard() {
@@ -95,7 +87,9 @@ function Dashboard() {
                 <p className="text-green-400 text-sm mt-1">+{stats.recentNotes} this week</p>
               </div>
               <div className="p-3 bg-blue-500/10 rounded-lg">
-                <IconNotes className="h-6 w-6 text-blue-400" />
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
+                </svg>
               </div>
             </div>
           </div>
@@ -109,7 +103,9 @@ function Dashboard() {
                 <p className="text-blue-400 text-sm mt-1">Based on recent activity</p>
               </div>
               <div className="p-3 bg-green-500/10 rounded-lg">
-                <IconTrendingUp className="h-6 w-6 text-green-400" />
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clipRule="evenodd" />
+                </svg>
               </div>
             </div>
           </div>
@@ -123,7 +119,9 @@ function Dashboard() {
                 <p className="text-gray-400 text-sm mt-1">characters per note</p>
               </div>
               <div className="p-3 bg-purple-500/10 rounded-lg">
-                <IconEdit className="h-6 w-6 text-purple-400" />
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-purple-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                </svg>
               </div>
             </div>
           </div>
@@ -137,7 +135,9 @@ function Dashboard() {
                 <p className="text-gray-400 text-sm mt-1">notes this week</p>
               </div>
               <div className="p-3 bg-orange-500/10 rounded-lg">
-                <IconCalendar className="h-6 w-6 text-orange-400" />
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-orange-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                </svg>
               </div>
             </div>
           </div>
@@ -155,7 +155,9 @@ function Dashboard() {
                     onClick={() => navigate('/notes')}
                     className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200"
                   >
-                    <IconPlus size={18} />
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                    </svg>
                     <span>New Note</span>
                   </button>
                 </div>
@@ -164,7 +166,9 @@ function Dashboard() {
               <div className="p-6">
                 {recentNotes.length === 0 ? (
                   <div className="text-center py-8">
-                    <IconNotes className="h-12 w-12 text-gray-600 mx-auto mb-3" />
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-600 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
                     <p className="text-gray-400">No notes yet</p>
                     <p className="text-gray-500 text-sm mt-1">Create your first note to get started</p>
                   </div>
@@ -182,14 +186,18 @@ function Dashboard() {
                               className="p-1.5 text-blue-400 hover:text-blue-300 hover:bg-gray-600 rounded transition-colors duration-200"
                               title="Edit note"
                             >
-                              <IconEdit size={16} />
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                              </svg>
                             </button>
                             <button
                               onClick={() => handleDeleteNote(note._id)}
                               className="p-1.5 text-red-400 hover:text-red-300 hover:bg-gray-600 rounded transition-colors duration-200"
                               title="Delete note"
                             >
-                              <IconTrash size={16} />
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                              </svg>
                             </button>
                           </div>
                         </div>
@@ -236,7 +244,9 @@ function Dashboard() {
                   className="w-full flex items-center gap-3 p-4 bg-gray-700 hover:bg-gray-600 rounded-lg border border-gray-600 hover:border-blue-500 transition-all duration-200 group"
                 >
                   <div className="p-2 bg-blue-500/10 rounded-lg">
-                    <IconPlus className="h-5 w-5 text-blue-400 group-hover:text-blue-300" />
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-400 group-hover:text-blue-300" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                    </svg>
                   </div>
                   <div className="text-left">
                     <p className="text-white font-medium">New Note</p>
@@ -249,7 +259,9 @@ function Dashboard() {
                   className="w-full flex items-center gap-3 p-4 bg-gray-700 hover:bg-gray-600 rounded-lg border border-gray-600 hover:border-green-500 transition-all duration-200 group"
                 >
                   <div className="p-2 bg-green-500/10 rounded-lg">
-                    <IconEdit className="h-5 w-5 text-green-400 group-hover:text-green-300" />
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-400 group-hover:text-green-300" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                    </svg>
                   </div>
                   <div className="text-left">
                     <p className="text-white font-medium">Manage Notes</p>
