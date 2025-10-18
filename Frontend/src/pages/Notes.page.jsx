@@ -1,72 +1,44 @@
-import React, { useState, useEffect } from 'react';
-import { useAuthStore } from '../lib/authStore'; // Fixed import path
-import { axiosInstance } from '../axios/axios.js';
+import React, { useEffect } from 'react';
+import { useAuthStore } from '../lib/authStore';
+import { useNoteStore } from '../lib/noteStore';
 import { toast } from 'react-hot-toast';
 
 function Notes() {
   const { authUser } = useAuthStore();
-  const [notes, setNotes] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [isAdding, setIsAdding] = useState(false);
-  const [isEditing, setIsEditing] = useState(false); // Added separate loading state for editing
-  const [editingNote, setEditingNote] = useState(null);
-  const [showAddForm, setShowAddForm] = useState(false);
-  
-  // Form states
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
+  const {
+    notes,
+    loading,
+    isAdding,
+    isEditing,
+    editingNote,
+    showAddForm,
+    title,
+    content,
+    fetchNotes,
+    addNote,
+    editNote,
+    deleteNote,
+    startEditing,
+    cancelForm,
+    openAddForm,
+    setTitle,
+    setContent
+  } = useNoteStore();
 
   // Fetch notes on component mount
   useEffect(() => {
     if (authUser) {
       fetchNotes();
     }
-  }, [authUser]);
-
-  const fetchNotes = async () => {
-    setLoading(true);
-    try {
-      const response = await axiosInstance.get('/notes/getNotes');
-      setNotes(response.data);
-    } catch (error) {
-      console.error('Error fetching notes:', error);
-      if (error.response?.status !== 404) { // Don't show error for empty notes
-        toast.error('Failed to fetch notes');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [authUser, fetchNotes]);
 
   const handleAddNote = async (e) => {
     e.preventDefault();
     if (!title.trim()) {
-        toast.error('Title is required');
-        return;
+      toast.error('Title is required');
+      return;
     }
-
-    setIsAdding(true);
-    try {
-        const response = await axiosInstance.post('/notes/addNotes', {
-            title: title.trim(),
-            content: content.trim()
-        });
-        
-        setNotes(prevNotes => [response.data.note, ...prevNotes]);
-        setTitle('');
-        setContent('');
-        setShowAddForm(false);
-        toast.success('Note added successfully');
-    } catch (error) {
-        console.error('Error adding note:', error);
-        console.error('Error response:', error.response);
-        
-        const errorMessage = error.response?.data?.message || 
-                           'Failed to add note. Please try again.';
-        toast.error(errorMessage);
-    } finally {
-        setIsAdding(false);
-    }
+    await addNote(title, content);
   };
 
   const handleEditNote = async (e) => {
@@ -75,70 +47,14 @@ function Notes() {
       toast.error('Title is required');
       return;
     }
-
-    setIsEditing(true);
-    try {
-      const response = await axiosInstance.put(`/notes/editNote/${editingNote._id}`, {
-        title: title.trim(),
-        content: content.trim()
-      });
-      
-      // Use the updated note from response
-      setNotes(prevNotes => 
-        prevNotes.map(note => 
-          note._id === editingNote._id 
-            ? response.data.note // Use the note from response
-            : note
-        )
-      );
-      
-      setEditingNote(null);
-      setTitle('');
-      setContent('');
-      setShowAddForm(false);
-      toast.success('Note updated successfully');
-    } catch (error) {
-      console.error('Error updating note:', error);
-      toast.error(error.response?.data?.message || 'Failed to update note');
-    } finally {
-      setIsEditing(false);
-    }
+    await editNote(editingNote._id, title, content);
   };
 
   const handleDeleteNote = async (noteId) => {
     if (!window.confirm('Are you sure you want to delete this note?')) {
       return;
     }
-
-    try {
-      await axiosInstance.delete(`/notes/deleteNote/${noteId}`);
-      setNotes(prevNotes => prevNotes.filter(note => note._id !== noteId));
-      toast.success('Note deleted successfully');
-    } catch (error) {
-      console.error('Error deleting note:', error);
-      toast.error(error.response?.data?.message || 'Failed to delete note');
-    }
-  };
-
-  const startEditing = (note) => {
-    setEditingNote(note);
-    setTitle(note.title);
-    setContent(note.content || '');
-    setShowAddForm(true);
-  };
-
-  const cancelForm = () => {
-    setShowAddForm(false);
-    setEditingNote(null);
-    setTitle('');
-    setContent('');
-  };
-
-  const openAddForm = () => {
-    setShowAddForm(true);
-    setEditingNote(null);
-    setTitle('');
-    setContent('');
+    await deleteNote(noteId);
   };
 
   const formatDate = (dateString) => {
