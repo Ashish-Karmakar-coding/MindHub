@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import axios from 'axios';
 
-const useLinkStore = create((set, get) => ({
+export const useLinkStore = create((set, get) => ({
   links: [],
   loading: false,
   error: null,
@@ -14,11 +14,15 @@ const useLinkStore = create((set, get) => ({
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
-      set({ links: response.data, loading: false });
+      
+      // Ensure links is always an array
+      const linksData = Array.isArray(response.data) ? response.data : [];
+      set({ links: linksData, loading: false });
     } catch (error) {
       set({ 
         error: error.response?.data?.message || 'Failed to fetch links',
-        loading: false 
+        loading: false,
+        links: [] // Reset links on error
       });
     }
   },
@@ -36,9 +40,11 @@ const useLinkStore = create((set, get) => ({
       );
       
       // Add the new link to the beginning of the list
-      set((state) => ({ 
-        links: [response.data.link, ...state.links],
-      }));
+      if (response.data.link) {
+        set((state) => ({ 
+          links: [response.data.link, ...state.links],
+        }));
+      }
       
       return response.data;
     } catch (error) {
@@ -50,5 +56,3 @@ const useLinkStore = create((set, get) => ({
 
   clearError: () => set({ error: null }),
 }));
-
-export default useLinkStore;

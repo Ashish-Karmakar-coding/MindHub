@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import useLinkStore from '../lib/linkStore.js';
+import { useLinkStore } from '../lib/linkStore.js';
 import { useAuthStore } from '../lib/authStore.js';
 
 const LinksPage = () => {
@@ -29,7 +29,10 @@ const LinksPage = () => {
     }
   };
 
-  if (loading && links.length === 0) {
+  // Ensure links is always an array for mapping
+  const safeLinks = Array.isArray(links) ? links : [];
+
+  if (loading && safeLinks.length === 0) {
     return <div className="flex justify-center items-center min-h-64">Loading...</div>;
   }
 
@@ -77,12 +80,12 @@ const LinksPage = () => {
 
       {/* Links List */}
       <div className="space-y-4">
-        {links.length === 0 ? (
+        {safeLinks.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
-            No links found. Add your first link above!
+            {loading ? 'Loading...' : 'No links found. Add your first link above!'}
           </div>
         ) : (
-          links.map((link) => (
+          safeLinks.map((link) => (
             <div
               key={link._id}
               className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
@@ -108,7 +111,7 @@ const LinksPage = () => {
       </div>
 
       {/* Loading indicator for subsequent loads */}
-      {loading && links.length > 0 && (
+      {loading && safeLinks.length > 0 && (
         <div className="text-center py-4">Loading more...</div>
       )}
     </div>
