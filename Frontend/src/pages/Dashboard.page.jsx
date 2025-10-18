@@ -10,9 +10,9 @@ function Dashboard() {
   
   const [stats, setStats] = useState({
     totalNotes: 0,
-    recentNotes: 0,
-    averageLength: 0,
-    productivity: 0
+    files: 8, // Static data for files
+    links: 5, // Static data for links
+    recentNotes: 0
   });
 
   useEffect(() => {
@@ -30,19 +30,12 @@ function Dashboard() {
     const recentNotes = notes.filter(note => 
       new Date(note.createdAt) > last7Days
     ).length;
-    
-    const totalChars = notes.reduce((sum, note) => 
-      sum + (note.title?.length || 0) + (note.content?.length || 0), 0
-    );
-    
-    const averageLength = totalNotes > 0 ? Math.round(totalChars / totalNotes) : 0;
-    const productivity = totalNotes > 0 ? Math.min(100, Math.round((recentNotes / totalNotes) * 200)) : 0;
 
     setStats({
       totalNotes,
-      recentNotes,
-      averageLength,
-      productivity
+      files: 8, // You can replace this with actual file count from your backend
+      links: 5, // You can replace this with actual link count from your backend
+      recentNotes
     });
   }, [notes]);
 
@@ -94,33 +87,33 @@ function Dashboard() {
             </div>
           </div>
 
-          {/* Productivity Score Card */}
+          {/* Files Card */}
           <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-gray-600 transition-all duration-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-400">Productivity Score</p>
-                <p className="text-3xl font-bold text-white mt-2">{stats.productivity}%</p>
-                <p className="text-blue-400 text-sm mt-1">Based on recent activity</p>
+                <p className="text-sm font-medium text-gray-400">Files</p>
+                <p className="text-3xl font-bold text-white mt-2">{stats.files}</p>
+                <p className="text-blue-400 text-sm mt-1">Uploaded files</p>
               </div>
               <div className="p-3 bg-green-500/10 rounded-lg">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clipRule="evenodd" />
+                  <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
                 </svg>
               </div>
             </div>
           </div>
 
-          {/* Average Length Card */}
+          {/* Links Card */}
           <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-gray-600 transition-all duration-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-400">Avg. Note Length</p>
-                <p className="text-3xl font-bold text-white mt-2">{stats.averageLength}</p>
-                <p className="text-gray-400 text-sm mt-1">characters per note</p>
+                <p className="text-sm font-medium text-gray-400">Links</p>
+                <p className="text-3xl font-bold text-white mt-2">{stats.links}</p>
+                <p className="text-purple-400 text-sm mt-1">Saved links</p>
               </div>
               <div className="p-3 bg-purple-500/10 rounded-lg">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-purple-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                  <path fillRule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clipRule="evenodd" />
                 </svg>
               </div>
             </div>
@@ -275,16 +268,16 @@ function Dashboard() {
                   </h3>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-300">Notes Created</span>
+                      <span className="text-gray-300">Total Notes</span>
                       <span className="text-white font-medium">{stats.totalNotes}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-300">This Week</span>
-                      <span className="text-green-400 font-medium">+{stats.recentNotes}</span>
+                      <span className="text-gray-300">Files</span>
+                      <span className="text-green-400 font-medium">{stats.files}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-300">Avg. Length</span>
-                      <span className="text-white font-medium">{stats.averageLength} chars</span>
+                      <span className="text-gray-300">Links</span>
+                      <span className="text-purple-400 font-medium">{stats.links}</span>
                     </div>
                   </div>
                 </div>
