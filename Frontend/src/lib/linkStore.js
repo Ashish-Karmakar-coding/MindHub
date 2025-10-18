@@ -10,7 +10,7 @@ export const useLinkStore = create((set, get) => ({
   fetchLinks: async () => {
     set({ loading: true, error: null });
     try {
-      const response = await axiosInstance.get('/api/links', {
+      const response = await axiosInstance.get('/links/get-link', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -31,7 +31,7 @@ export const useLinkStore = create((set, get) => ({
   addLink: async (url) => {
     set({ error: null });
     try {
-      const response = await axiosInstance.post('/api/links', 
+      const response = await axiosInstance.post('/links/add-link', 
         { url },
         {
           headers: {
