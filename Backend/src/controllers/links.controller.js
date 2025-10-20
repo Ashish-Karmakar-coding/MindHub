@@ -45,7 +45,7 @@ const getLinks = async (req, res) => {
 };
 
 const deleteLink = async (req, res) => {
-    const { linkId } = req.body; // Change from req.params to req.body
+    const { linkId } = req.params; 
     const userId = req.user._id;
 
     if (!linkId) {

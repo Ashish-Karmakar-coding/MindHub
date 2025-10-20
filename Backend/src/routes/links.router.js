@@ -8,10 +8,9 @@ import {tokenCheck} from '../middlewares/tokenCheck.middleware.js'
 
 const router = express.Router();
 
-router.post("/add-link",tokenCheck,addLink)
-
-router.get("/get-link",tokenCheck,getLinks)
-
-router.delete("/delete-link",tokenCheck,deleteLink)
+router.post("/add-link", tokenCheck, addLink);
+router.get("/get-link", tokenCheck, getLinks);
+// Change to use URL parameter instead of request body
+router.delete("/delete-link/:linkId", tokenCheck, deleteLink);
 
 export default router;
