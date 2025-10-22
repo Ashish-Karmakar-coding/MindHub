@@ -2,18 +2,26 @@ import { useEffect, useState } from 'react';
 import { useLinkStore } from '../lib/linkStore.js';
 import { useAuthStore } from '../lib/authStore.js';
 import { Trash2, ExternalLink } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const LinksPage = () => {
   const { links, loading, error, fetchLinks, addLink, deleteLink, clearError } = useLinkStore();
   const { authUser } = useAuthStore();
   const [url, setUrl] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     if (authUser) {
       fetchLinks();
     }
-  }, [authUser]); // Removed fetchLinks from deps to avoid re-renders
+  }, [authUser]);
+
+  // Show error toast when error changes
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+      clearError();
+    }
+  }, [error, clearError]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,39 +29,34 @@ const LinksPage = () => {
 
     // Basic URL validation
     try {
-      new URL(url); // This will throw if URL is invalid
+      new URL(url);
     } catch {
-      setSuccessMessage('Please enter a valid URL');
-      setTimeout(() => setSuccessMessage(''), 3000);
+      toast.error('Please enter a valid URL');
       return;
     }
 
     try {
-      clearError(); // Clear any previous errors
       await addLink(url);
       setUrl('');
-      setSuccessMessage('Link added successfully!');
-      setTimeout(() => setSuccessMessage(''), 3000);
+      toast.success('Link added successfully!');
     } catch (err) {
-      // Error is already set in the store
+      // Error toast is handled by the useEffect above
       console.error('Failed to add link:', err);
     }
   };
 
   const handleDelete = async (linkId) => {
-    if (!window.confirm('Are you sure you want to delete this link?')) {
-      return;
-    }
-
-    try {
-      clearError();
-      await deleteLink(linkId);
-      setSuccessMessage('Link deleted successfully!');
-      setTimeout(() => setSuccessMessage(''), 3000);
-    } catch (err) {
-      // Error is already set in the store
+    // Use toast.promise for delete confirmation and feedback
+    toast.promise(
+      deleteLink(linkId),
+      {
+        loading: 'Deleting link...',
+        success: 'Link deleted successfully!',
+        error: 'Failed to delete link',
+      }
+    ).catch(err => {
       console.error('Failed to delete link:', err);
-    }
+    });
   };
 
   // Ensure links is always an array for mapping
@@ -85,32 +88,12 @@ const LinksPage = () => {
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? 'Adding...' : 'Add Link'}
           </button>
         </div>
       </form>
-
-      {/* Success Message */}
-      {successMessage && (
-        <div className="p-4 mb-6 rounded-lg bg-green-100 text-green-800 border border-green-200">
-          {successMessage}
-        </div>
-      )}
-
-      {/* Error Display */}
-      {error && (
-        <div className="p-4 mb-6 bg-red-100 text-red-800 rounded-lg border border-red-200 flex justify-between items-center">
-          <span>{error}</span>
-          <button
-            onClick={clearError}
-            className="text-red-600 hover:text-red-800 font-semibold"
-          >
-            ×
-          </button>
-        </div>
-      )}
 
       {/* Links List */}
       <div className="space-y-4">
