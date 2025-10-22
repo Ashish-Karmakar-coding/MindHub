@@ -1,31 +1,58 @@
 import { useEffect, useState } from 'react';
 import { useLinkStore } from '../lib/linkStore.js';
 import { useAuthStore } from '../lib/authStore.js';
+import { Trash2, ExternalLink } from 'lucide-react';
 
 const LinksPage = () => {
-  const { links, loading, error, fetchLinks, addLink } = useLinkStore();
+  const { links, loading, error, fetchLinks, addLink, deleteLink, clearError } = useLinkStore();
   const { authUser } = useAuthStore();
   const [url, setUrl] = useState('');
-  const [message, setMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     if (authUser) {
       fetchLinks();
     }
-  }, [authUser, fetchLinks]);
+  }, [authUser]); // Removed fetchLinks from deps to avoid re-renders
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!url.trim()) return;
 
+    // Basic URL validation
     try {
+      new URL(url); // This will throw if URL is invalid
+    } catch {
+      setSuccessMessage('Please enter a valid URL');
+      setTimeout(() => setSuccessMessage(''), 3000);
+      return;
+    }
+
+    try {
+      clearError(); // Clear any previous errors
       await addLink(url);
       setUrl('');
-      setMessage('Link added successfully!');
-      setTimeout(() => setMessage(''), 3000);
-    } catch (error) {
-      setMessage(error.response?.data?.message || 'Failed to add link');
-      setTimeout(() => setMessage(''), 3000);
+      setSuccessMessage('Link added successfully!');
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err) {
+      // Error is already set in the store
+      console.error('Failed to add link:', err);
+    }
+  };
+
+  const handleDelete = async (linkId) => {
+    if (!window.confirm('Are you sure you want to delete this link?')) {
+      return;
+    }
+
+    try {
+      clearError();
+      await deleteLink(linkId);
+      setSuccessMessage('Link deleted successfully!');
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err) {
+      // Error is already set in the store
+      console.error('Failed to delete link:', err);
     }
   };
 
@@ -33,12 +60,16 @@ const LinksPage = () => {
   const safeLinks = Array.isArray(links) ? links : [];
 
   if (loading && safeLinks.length === 0) {
-    return <div className="flex justify-center items-center min-h-64">Loading...</div>;
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-xl text-gray-600">Loading links...</div>
+      </div>
+    );
   }
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-8">My Links</h1>
+      <h1 className="text-3xl font-bold mb-8 text-gray-800">My Links</h1>
 
       {/* Add Link Form */}
       <form onSubmit={handleSubmit} className="mb-8">
@@ -47,72 +78,92 @@ const LinksPage = () => {
             type="url"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="Enter URL"
+            placeholder="https://example.com"
             className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
           <button
             type="submit"
-            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={loading}
+            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Add Link
+            {loading ? 'Adding...' : 'Add Link'}
           </button>
         </div>
       </form>
 
-      {/* Messages */}
-      {message && (
-        <div className={`p-4 mb-6 rounded-lg ${
-          message.includes('successfully') 
-            ? 'bg-green-100 text-green-800' 
-            : 'bg-red-100 text-red-800'
-        }`}>
-          {message}
+      {/* Success Message */}
+      {successMessage && (
+        <div className="p-4 mb-6 rounded-lg bg-green-100 text-green-800 border border-green-200">
+          {successMessage}
         </div>
       )}
 
       {/* Error Display */}
       {error && (
-        <div className="p-4 mb-6 bg-red-100 text-red-800 rounded-lg">
-          {error}
+        <div className="p-4 mb-6 bg-red-100 text-red-800 rounded-lg border border-red-200 flex justify-between items-center">
+          <span>{error}</span>
+          <button
+            onClick={clearError}
+            className="text-red-600 hover:text-red-800 font-semibold"
+          >
+            ×
+          </button>
         </div>
       )}
 
       {/* Links List */}
       <div className="space-y-4">
         {safeLinks.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            {loading ? 'Loading...' : 'No links found. Add your first link above!'}
+          <div className="text-center py-12 bg-gray-50 rounded-lg">
+            <p className="text-gray-500 text-lg">No links found</p>
+            <p className="text-gray-400 text-sm mt-2">Add your first link above!</p>
           </div>
         ) : (
           safeLinks.map((link) => (
             <div
               key={link._id}
-              className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
+              className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow bg-white"
             >
-              <div className="flex justify-between items-center">
-                <div className="flex-1">
-                  <a
+              <div className="flex justify-between items-start gap-4">
+                <div className="flex-1 min-w-0">
+                  <a 
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-500 hover:text-blue-600 break-all"
+                    className="text-blue-500 hover:text-blue-600 break-all flex items-center gap-2 group"
                   >
-                    {link.url}
+                    <span className="truncate">{link.url}</span>
+                    <ExternalLink size={16} className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </a>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Added on {new Date(link.createdAt).toLocaleDateString()}
+                  <p className="text-sm text-gray-500 mt-2">
+                    Added {new Date(link.createdAt).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
                   </p>
                 </div>
+                <button
+                  onClick={() => handleDelete(link._id)}
+                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+                  title="Delete link"
+                >
+                  <Trash2 size={20} />
+                </button>
               </div>
             </div>
           ))
         )}
       </div>
 
-      {/* Loading indicator for subsequent loads */}
+      {/* Loading indicator for subsequent operations */}
       {loading && safeLinks.length > 0 && (
-        <div className="text-center py-4">Loading more...</div>
+        <div className="text-center py-4 text-gray-500">
+          <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+        </div>
       )}
     </div>
   );

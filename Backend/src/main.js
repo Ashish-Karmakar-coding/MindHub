@@ -26,7 +26,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use("/api/users",userRouter)
-app.use("/api/links",linksRouter)
+app.use("/api/Links",linksRouter)
 app.use("/api/notes",notesRouter)
 app.use("/api/files",fileRouter)
 app.use("/api/folders",folderRouter)

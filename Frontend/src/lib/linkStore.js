@@ -9,40 +9,39 @@ export const useLinkStore = create((set, get) => ({
   fetchLinks: async () => {
     set({ loading: true, error: null });
     try {
-      const response = await axiosInstance.get('/links/get-link');
+      const response = await axiosInstance.get('/Links/get-link');
       
-      console.log('Fetch Links Response:', response); // Debug log
+      console.log('Fetch Links Response:', response);
       
-      // Handle different response structures
-      let linksData = [];
-      if (Array.isArray(response.data)) {
-        linksData = response.data;
-      } else if (response.data && Array.isArray(response.data.links)) {
-        linksData = response.data.links;
-      } else if (response.data && response.data.data) {
-        linksData = response.data.data;
-      }
+      // Backend returns array directly
+      const linksData = Array.isArray(response.data) ? response.data : [];
       
       set({ links: linksData, loading: false });
     } catch (error) {
       console.error('Error fetching links:', error);
-      set({ 
-        error: error.response?.data?.message || error.message || 'Failed to fetch links',
-        loading: false,
-        links: []
-      });
+      
+      // Handle 404 as empty array (no links found)
+      if (error.response?.status === 404) {
+        set({ links: [], loading: false, error: null });
+      } else {
+        set({ 
+          error: error.response?.data?.message || error.message || 'Failed to fetch links',
+          loading: false,
+          links: []
+        });
+      }
     }
   },
 
   addLink: async (url) => {
     set({ error: null });
     try {
-      const response = await axiosInstance.post('/links/add-link', { url });
+      const response = await axiosInstance.post('/Links/add-link', { url });
       
-      console.log('Add Link Response:', response); // Debug log
+      console.log('Add Link Response:', response);
       
-      // Handle different response structures
-      const newLink = response.data.link || response.data.data || response.data;
+      // Backend returns { message: '...', link: {...} }
+      const newLink = response.data.link;
       
       if (newLink) {
         set((state) => ({ 
@@ -62,10 +61,8 @@ export const useLinkStore = create((set, get) => ({
   deleteLink: async (linkId) => {
     set({ error: null });
     try {
-      // Your delete route expects linkId in the request body, not URL params
-      const response = await axiosInstance.delete('/links/delete-link', {
-        data: { linkId } // Send linkId in the request body
-      });
+      // FIX: Send linkId as URL parameter, not request body
+      const response = await axiosInstance.delete(`/Links/delete-link/${linkId}`);
 
       // Remove the deleted link from state
       set((state) => ({
