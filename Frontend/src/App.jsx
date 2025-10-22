@@ -15,17 +15,19 @@ function App() {
   
   useEffect(() => {
     checkAuth()
-  }, []);
+  }, [checkAuth]);
 
   return (
-    <div className="grid grid-cols-[auto_1fr] h-screen">
-      {/* Left Column - Sidebar */}
-      <div className="h-screen">
-        {authUser && <Sidebar />}
-      </div>
+    <div className="flex h-screen overflow-hidden bg-gray-900">
+      {/* Sidebar - Only shown when authenticated */}
+      {authUser && <Sidebar />}
       
-      {/* Right Column - Pages */}
-      <div className="h-screen overflow-auto bg-gray-900">
+      {/* Main Content Area */}
+      <div 
+        className={`flex-1 h-screen overflow-auto transition-all duration-300 ${
+          authUser ? 'ml-16' : 'ml-0'
+        }`}
+      >
         <Routes>
           <Route path="/" element={authUser ? <Dashboard /> : <Navigate to="/signup" />} />
           <Route path="/login" element={!authUser ? <Login /> : <Navigate to="/" />} />
@@ -33,7 +35,6 @@ function App() {
           <Route path="/notes" element={authUser ? <Notes /> : <Navigate to="/signup" />} />
           <Route path="/links" element={authUser ? <Link /> : <Navigate to="/signup" />} />
           <Route path="/files" element={authUser ? <Files /> : <Navigate to="/signup" />} />
-
         </Routes>
       </div>
     </div>
