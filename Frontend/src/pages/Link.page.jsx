@@ -71,83 +71,87 @@ const LinksPage = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-8 text-gray-800">My Links</h1>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-6">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-4xl font-bold mb-8 text-white text-center">
+          My Links Collection
+        </h1>
 
-      {/* Add Link Form */}
-      <form onSubmit={handleSubmit} className="mb-8">
-        <div className="flex gap-4">
-          <input
-            type="url"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://example.com"
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {loading ? 'Adding...' : 'Add Link'}
-          </button>
-        </div>
-      </form>
-
-      {/* Links List */}
-      <div className="space-y-4">
-        {safeLinks.length === 0 ? (
-          <div className="text-center py-12 bg-gray-50 rounded-lg">
-            <p className="text-gray-500 text-lg">No links found</p>
-            <p className="text-gray-400 text-sm mt-2">Add your first link above!</p>
+        {/* Add Link Form */}
+        <form onSubmit={handleSubmit} className="mb-8">
+          <div className="flex gap-4">
+            <input
+              type="url"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="https://example.com"
+              className="flex-1 px-4 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+              required
+            />
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-8 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-semibold shadow-lg"
+              >
+              {loading ? 'Adding...' : 'Add Link'}
+            </button>
           </div>
-        ) : (
-          safeLinks.map((link) => (
-            <div
-              key={link._id}
-              className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow bg-white"
-            >
-              <div className="flex justify-between items-start gap-4">
-                <div className="flex-1 min-w-0">
-                  <a 
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-500 hover:text-blue-600 break-all flex items-center gap-2 group"
-                  >
-                    <span className="truncate">{link.url}</span>
-                    <ExternalLink size={16} className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </a>
-                  <p className="text-sm text-gray-500 mt-2">
-                    Added {new Date(link.createdAt).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </p>
-                </div>
-                <button
-                  onClick={() => handleDelete(link._id)}
-                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
-                  title="Delete link"
-                >
-                  <Trash2 size={20} />
-                </button>
-              </div>
+        </form>
+
+        {/* Links List */}
+        <div className="space-y-4">
+          {safeLinks.length === 0 ? (
+            <div className="text-center py-16 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10">
+              <p className="text-white/80 text-xl font-semibold">No links found</p>
+              <p className="text-white/50 text-sm mt-2">Add your first link above!</p>
             </div>
-          ))
+          ) : (
+            safeLinks.map((link) => (
+              <div
+                key={link._id}
+                className="p-5 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl hover:bg-white/15 hover:shadow-2xl transition-all duration-300"
+              >
+                <div className="flex justify-between items-start gap-4">
+                  <div className="flex-1 min-w-0">
+                    <a 
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-300 hover:text-blue-200 break-all flex items-center gap-2 group font-medium"
+                    >
+                      <span className="truncate">{link.url}</span>
+                      <ExternalLink size={16} className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </a>
+                    <p className="text-sm text-white/60 mt-2">
+                      Added {new Date(link.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleDelete(link._id)}
+                    className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-all duration-300 flex-shrink-0 hover:scale-110"
+                    title="Delete link"
+                  >
+                    <Trash2 size={20} />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Loading indicator for subsequent operations */}
+        {loading && safeLinks.length > 0 && (
+          <div className="text-center py-4 text-white/70">
+            <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400"></div>
+          </div>
         )}
       </div>
-
-      {/* Loading indicator for subsequent operations */}
-      {loading && safeLinks.length > 0 && (
-        <div className="text-center py-4 text-gray-500">
-          <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-        </div>
-      )}
     </div>
   );
 };
