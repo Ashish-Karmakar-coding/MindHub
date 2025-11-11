@@ -1,44 +1,33 @@
-import { Routes, Route, Navigate } from "react-router-dom";
-import './App.css'
-import { useEffect } from 'react'
-import Signup from './pages/Signup.page.jsx'
-import Login from './pages/Login.page.jsx'
-import Sidebar from './components/sidebar.jsx'
-import Files from "./pages/File.page.jsx";
-import Dashboard from './pages/Dashboard.page.jsx'
-import Link from "./pages/Link.page.jsx";
-import Notes from './pages/Notes.page.jsx'
-import { useAuthStore } from './lib/authStore.js'
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Layout } from "@/components/Layout";
+import Index from "./pages/Index";
+import Notes from "./pages/Notes";
+import Links from "./pages/Links";
+import Auth from "./pages/Auth";
+import NotFound from "./pages/NotFound";
 
-function App() {
-  const { authUser, checkAuth } = useAuthStore();
-  
-  useEffect(() => {
-    checkAuth()
-  }, [checkAuth]);
+const queryClient = new QueryClient();
 
-  return (
-    <div className="flex h-screen overflow-hidden bg-gray-900">
-      {/* Sidebar - Only shown when authenticated */}
-      {authUser && <Sidebar />}
-      
-      {/* Main Content Area */}
-      <div 
-        className={`flex-1 h-screen overflow-auto transition-all duration-300 ${
-          authUser ? 'ml-16' : 'ml-0'
-        }`}
-      >
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
         <Routes>
-          <Route path="/" element={authUser ? <Dashboard /> : <Navigate to="/signup" />} />
-          <Route path="/login" element={!authUser ? <Login /> : <Navigate to="/" />} />
-          <Route path="/signup" element={!authUser ? <Signup /> : <Navigate to="/" />} />
-          <Route path="/notes" element={authUser ? <Notes /> : <Navigate to="/signup" />} />
-          <Route path="/links" element={authUser ? <Link /> : <Navigate to="/signup" />} />
-          <Route path="/files" element={authUser ? <Files /> : <Navigate to="/signup" />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/" element={<Layout><Index /></Layout>} />
+          <Route path="/notes" element={<Layout><Notes /></Layout>} />
+          <Route path="/links" element={<Layout><Links /></Layout>} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
-      </div>
-    </div>
-  )
-}
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
-export default App
+export default App;
