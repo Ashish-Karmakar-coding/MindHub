@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+
 import { useAuthStore } from "./stores/authStore.js";
 
 import { Signup } from "./pages/Signup.page.jsx"
@@ -6,6 +8,12 @@ import { Home } from "./pages/Home.page.jsx"
 import { Dashboard } from "./pages/Dashboard.page.jsx";
 import { Links } from "./pages/Links.page.jsx";
 import { Notes } from "./pages/Notes.page.jsx";
+
+import {Routes , Route, Navigate} from "react-router-dom";
+
+import { Loader } from "lucide-react";
+
+import {Toaster} from "react-hot-toast";
 
 function App() {
 
@@ -24,7 +32,7 @@ function App() {
 
   return (
     <>
-    <Navbar/>
+    
      <Routes>
         <Route path="/" element={authUser ? <Home />: <Navigate to="/signup"/>} />
         <Route path="/login" element={!authUser ?<Login  />: <Navigate to="/"/>} />
