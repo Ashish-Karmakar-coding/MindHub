@@ -3,7 +3,7 @@ function App() {
 
   return (
     <>
-      <div className="tesxt">
+      <div>
         hi
       </div>
     </>
