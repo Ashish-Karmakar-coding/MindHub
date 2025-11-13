@@ -32,17 +32,17 @@ function App() {
 
   return (
     <>
-    
-     <Routes>
+    <Dashboard />
+     {/* <Routes>
         <Route path="/" element={authUser ? <Home />: <Navigate to="/signup"/>} />
         <Route path="/login" element={!authUser ?<Login  />: <Navigate to="/"/>} />
         <Route path="/signup" element={!authUser ? <Signup /> : <Navigate to="/"/>} />
         <Route path="/dashboard" element={authUser ? <Dashboard />: <Navigate to="/signup"/>} />
         <Route path="/links" element={authUser ? <Links />: <Navigate to="/signup"/>} />
         <Route path="/notes" element={authUser ? <Notes />: <Navigate to="/signup"/>} />
-      </Routes>
 
-    <Toaster/>
+      </Routes> */}
+
 
     </>
   );
