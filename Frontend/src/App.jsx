@@ -32,7 +32,9 @@ function App() {
 
   return (
     <>
-    <Home />
+    {/* <Home /> */}
+    <Signup/>
+    <Login/>
      {/* <Routes>
         <Route path="/" element={authUser ? <Home />: <Navigate to="/signup"/>} />
         <Route path="/login" element={!authUser ?<Login  />: <Navigate to="/"/>} />
