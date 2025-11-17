@@ -1,75 +1,80 @@
-// LoginPage.js
-import React, { useState } from 'react';
+import React from 'react'
 
-const Login = () => {
-  const [formData, setFormData] = useState({
+export const Login = () => {
+   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log('Login:', formData.email, formData.password);
+    console.log('Login data:', formData);
+    // Add your login logic here
+    alert('Login functionality would be implemented here');
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl p-8 space-y-8">
-        <div>
-          <h2 className="text-center text-4xl font-bold text-gray-800 mb-2">
-            Welcome Back
-          </h2>
-          <p className="text-center text-gray-600">
-            Sign in to continue
-          </p>
+    <div className="auth-container">
+      <div className="auth-card">
+        <div className="auth-header">
+          <h1>Welcome Back</h1>
+          <p>Sign in to your account</p>
         </div>
-        <form className="space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
-                placeholder="Enter your email"
-                value={formData.email}
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
-                placeholder="Enter your password"
-                value={formData.password}
-                onChange={handleChange}
-              />
-            </div>
+
+        <form className="auth-form" onSubmit={handleSubmit}>
+          <div className="input-group">
+            <label>Email</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="Enter your email"
+              required
+            />
           </div>
 
-          <div>
-            <button
-              type="submit"
-              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 shadow-lg"
-            >
-              Sign In
-            </button>
+          <div className="input-group">
+            <label>Password</label>
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Enter your password"
+              required
+            />
           </div>
+
+          <div className="form-options">
+            <label className="checkbox-label">
+              <input type="checkbox" />
+              Remember me
+            </label>
+            <a href="#" className="forgot-password">Forgot password?</a>
+          </div>
+
+          <button type="submit" className="auth-button">
+            Sign In
+          </button>
         </form>
+
+        <div className="auth-footer">
+          <p>
+            Don't have an account?{' '}
+            <span className="auth-link" onClick={onSwitchToSignup}>
+              Sign up
+            </span>
+          </p>
+        </div>
       </div>
     </div>
   );
-};
-
-export {Login};
+}
