@@ -1,7 +1,8 @@
 import React from 'react'
 
+
 export const Dashboard = () => {
   return (
-    <div>Dashboard</div>
+    <div className='bg-amber-200'>Dashboard</div>
   )
 }
