@@ -37,6 +37,7 @@ function App() {
     {/* <Login/>   */}
     {/* <Sidebar/> */}
     <Notes/>
+    <Links/>
      {/* <Routes>
         <Route path="/" element={authUser ? <Dashboard />: <Navigate to="/signup"/>} />
         <Route path="/login" element={!authUser ?<Login  />: <Navigate to="/"/>} />

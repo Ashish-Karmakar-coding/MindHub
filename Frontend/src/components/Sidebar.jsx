@@ -13,7 +13,7 @@ export const Sidebar = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-900 flex">
+    <div className="min-h-screen bg-gray-900 flex ">
       {/* Sidebar */}
       <div
         className={`bg-gray-800 h-screen fixed left-0 top-0 transition-all duration-300 ease-in-out ${
