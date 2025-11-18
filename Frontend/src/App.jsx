@@ -38,7 +38,9 @@ function App() {
     {/* <Sidebar/> */}
     <Notes/>
     <Links/>
-     {/* <Routes>
+   
+   <Dashboard/>
+        {/* <Routes>
         <Route path="/" element={authUser ? <Dashboard />: <Navigate to="/signup"/>} />
         <Route path="/login" element={!authUser ?<Login  />: <Navigate to="/"/>} />
         <Route path="/signup" element={!authUser ? <Signup /> : <Navigate to="/"/>} />

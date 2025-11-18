@@ -1,11 +1,11 @@
 import { Link } from "../models/links.model.js";
 
 const addLink = async (req, res) => {
-    const { url } = req.body;
+    const { title,  url, description } = req.body;
     const userId = req.user._id;
 
-    if (!url) {
-        return res.status(400).json({ message: 'Bad Request: URL is required' });
+    if (!url || !title) {
+        return res.status(400).json({ message: 'Bad Request: URL and Title are required' });
     }
 
     try {
@@ -16,7 +16,9 @@ const addLink = async (req, res) => {
 
         const newLink = new Link({
             user_id: userId,
-            url: url
+            url: url,
+            title:title,
+            description:description
         });
         await newLink.save();
         return res.status(201).json({ message: 'Link added successfully', link: newLink });
