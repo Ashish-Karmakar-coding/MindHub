@@ -8,7 +8,7 @@ const getApiUrl = () => {
   }
   // Development mode
   if (import.meta.env.MODE === "development") {
-    return "http://localhost:3000/api";
+    return "http://localhost:5001/api";
   }
   // Production fallback - use relative path if backend is on same domain
   return "/api";
