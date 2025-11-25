@@ -37,9 +37,7 @@ export const Links = () => {
   };
 
   const handleDelete = async (linkId) => {
-    if (window.confirm('Are you sure you want to delete this link?')) {
-      await deleteLink(linkId);
-    }
+    await deleteLink(linkId);
   };
 
   const handleCancel = () => {

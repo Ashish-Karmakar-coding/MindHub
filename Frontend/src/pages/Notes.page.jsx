@@ -44,9 +44,7 @@ export const Notes = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this note?')) {
-      await deleteNote(id);
-    }
+    await deleteNote(id);
   };
 
   const handleCancel = () => {

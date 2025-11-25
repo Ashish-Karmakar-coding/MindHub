@@ -27,7 +27,7 @@ function App() {
 
   return (
     <>
-      <Toaster position="top-right" />
+      <Toaster position="bottom-left" />
       {authUser ? (
         <div className="flex min-h-screen bg-gray-900">
           <Sidebar />
