@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FileText, Link as LinkIcon, LogOut, Menu } from 'lucide-react';
+import { LayoutDashboard, FileText, Link as LinkIcon, LogOut, Menu, X } from 'lucide-react';
 import { useAuthStore } from '../lib/authStore';
 
 export const Sidebar = () => {
@@ -8,6 +8,7 @@ export const Sidebar = () => {
   const location = useLocation();
   const { authUser, logout } = useAuthStore();
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
@@ -15,37 +16,92 @@ export const Sidebar = () => {
     { icon: LinkIcon, label: 'Links', path: '/links' },
   ];
 
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsMobileOpen(false);
+  }, [location.pathname]);
+
+  // Close mobile menu on escape key
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && isMobileOpen) {
+        setIsMobileOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [isMobileOpen]);
+
   const handleLogout = async () => {
     await logout();
     navigate('/login');
+    setIsMobileOpen(false);
   };
 
   const handleNavigation = (path) => {
     navigate(path);
+    setIsMobileOpen(false);
+  };
+
+  const toggleMobileMenu = () => {
+    setIsMobileOpen(!isMobileOpen);
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex ">
+    <>
+      {/* Mobile Hamburger Button */}
+      <button
+        onClick={toggleMobileMenu}
+        className="lg:hidden fixed top-4 left-4 z-50 bg-gray-800 p-2 rounded-lg text-white hover:bg-gray-700 transition-colors border border-gray-700"
+        aria-label="Toggle menu"
+      >
+        {isMobileOpen ? (
+          <X className="w-6 h-6" />
+        ) : (
+          <Menu className="w-6 h-6" />
+        )}
+      </button>
+
+      {/* Mobile Backdrop */}
+      {isMobileOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300"
+          onClick={() => setIsMobileOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* Sidebar */}
       <div
-        className={`bg-gray-800 h-screen fixed left-0 top-0 transition-all duration-300 ease-in-out ${
-          isExpanded ? 'w-64' : 'w-20'
-        } border-r border-gray-700 z-50`}
-        onMouseEnter={() => setIsExpanded(true)}
-        onMouseLeave={() => setIsExpanded(false)}
+        className={`bg-gray-800 h-screen fixed left-0 top-0 transition-all duration-300 ease-in-out border-r border-gray-700 z-50
+          ${isMobileOpen ? 'translate-x-0 w-64' : '-translate-x-full lg:translate-x-0 w-64 lg:w-20'}
+          ${isExpanded && !isMobileOpen ? 'lg:w-64' : ''}
+          lg:block`}
+        onMouseEnter={() => !isMobileOpen && setIsExpanded(true)}
+        onMouseLeave={() => !isMobileOpen && setIsExpanded(false)}
       >
         <div className="flex flex-col h-full">
           {/* Logo/Header */}
           <div className="p-5 border-b border-gray-700">
-            <div className="flex items-center">
-              <Menu className="text-blue-500 w-6 h-6 min-w-6" />
-              <span
-                className={`ml-4 text-white font-semibold text-lg whitespace-nowrap transition-opacity duration-300 ${
-                  isExpanded ? 'opacity-100' : 'opacity-0'
-                }`}
+            <div className="flex items-center justify-between lg:justify-start">
+              <div className="flex items-center">
+                <Menu className="text-blue-500 w-6 h-6 min-w-6" />
+                <span
+                  className={`ml-4 text-white font-semibold text-lg whitespace-nowrap transition-opacity duration-300 ${
+                    isExpanded || isMobileOpen ? 'opacity-100' : 'opacity-0'
+                  }`}
+                >
+                  MindHub
+                </span>
+              </div>
+              {/* Mobile Close Button */}
+              <button
+                onClick={() => setIsMobileOpen(false)}
+                className="lg:hidden text-gray-400 hover:text-white transition-colors"
+                aria-label="Close menu"
               >
-                My App
-              </span>
+                <X className="w-5 h-5" />
+              </button>
             </div>
           </div>
 
@@ -62,7 +118,7 @@ export const Sidebar = () => {
                 <item.icon className="w-6 h-6 min-w-6" />
                 <span
                   className={`ml-4 whitespace-nowrap transition-opacity duration-300 ${
-                    isExpanded ? 'opacity-100' : 'opacity-0'
+                    isExpanded || isMobileOpen ? 'opacity-100' : 'opacity-0'
                   }`}
                 >
                   {item.label}
@@ -76,7 +132,7 @@ export const Sidebar = () => {
               <LogOut className="w-6 h-6 min-w-6" />
               <span
                 className={`ml-4 whitespace-nowrap transition-opacity duration-300 ${
-                  isExpanded ? 'opacity-100' : 'opacity-0'
+                  isExpanded || isMobileOpen ? 'opacity-100' : 'opacity-0'
                 }`}
               >
                 Logout
@@ -92,13 +148,13 @@ export const Sidebar = () => {
               </div>
               <div
                 className={`ml-3 transition-opacity duration-300 ${
-                  isExpanded ? 'opacity-100' : 'opacity-0'
+                  isExpanded || isMobileOpen ? 'opacity-100' : 'opacity-0'
                 }`}
               >
                 <p className="text-white text-sm font-medium whitespace-nowrap">
                   {authUser?.name || 'User Name'}
                 </p>
-                <p className="text-gray-400 text-xs whitespace-nowrap">
+                <p className="text-gray-400 text-xs whitespace-nowrap truncate max-w-[180px]">
                   {authUser?.email || 'user@example.com'}
                 </p>
               </div>
@@ -106,6 +162,6 @@ export const Sidebar = () => {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

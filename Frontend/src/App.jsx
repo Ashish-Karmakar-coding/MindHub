@@ -31,7 +31,8 @@ function App() {
       {authUser ? (
         <div className="flex min-h-screen bg-gray-900">
           <Sidebar />
-          <div className="flex-1 ml-20 sm:ml-20 lg:ml-64">
+          {/* Mobile: no margin, Desktop: margin for sidebar */}
+          <div className="flex-1 w-full lg:ml-20 xl:ml-64 pt-16 lg:pt-0">
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/notes" element={<Notes />} />
