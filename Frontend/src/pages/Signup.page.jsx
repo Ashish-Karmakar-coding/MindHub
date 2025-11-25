@@ -1,24 +1,49 @@
-import {useState} from 'react'
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuthStore } from '../lib/authStore';
+import { Loader } from 'lucide-react';
 
 export const Signup = () => {
-   const [formData, setFormData] = useState({
+  const navigate = useNavigate();
+  const { signUp, isSigningUp } = useAuthStore();
+  const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     confirmPassword: ''
   });
+  const [error, setError] = useState('');
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
+    setError('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    // Add your signup logic here
+    
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
+    const result = await signUp({
+      name: formData.name,
+      email: formData.email,
+      password: formData.password
+    });
+    
+    if (result.success) {
+      navigate('/');
+    }
   };
 
   return (
@@ -30,7 +55,13 @@ export const Signup = () => {
             <p className="text-sm sm:text-base text-gray-400">Sign up to get started</p>
           </div>
 
-          <div className="space-y-4 sm:space-y-6">
+          {error && (
+            <div className="bg-red-900 bg-opacity-30 border border-red-500 text-red-400 px-4 py-3 rounded-lg text-sm mb-4">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
                 Full Name
@@ -44,6 +75,7 @@ export const Signup = () => {
                 className="w-full px-3 py-2.5 sm:px-4 sm:py-3 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm sm:text-base placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="John Doe"
                 required
+                disabled={isSigningUp}
               />
             </div>
 
@@ -60,6 +92,7 @@ export const Signup = () => {
                 className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="you@example.com"
                 required
+                disabled={isSigningUp}
               />
             </div>
 
@@ -76,6 +109,7 @@ export const Signup = () => {
                 className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="••••••••"
                 required
+                disabled={isSigningUp}
               />
             </div>
 
@@ -92,23 +126,32 @@ export const Signup = () => {
                 className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="••••••••"
                 required
+                disabled={isSigningUp}
               />
             </div>
 
             <button
-              onClick={handleSubmit}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+              type="submit"
+              disabled={isSigningUp || !formData.name || !formData.email || !formData.password || !formData.confirmPassword}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              Sign Up
+              {isSigningUp ? (
+                <>
+                  <Loader className="w-4 h-4 animate-spin" />
+                  <span>Signing up...</span>
+                </>
+              ) : (
+                'Sign Up'
+              )}
             </button>
-          </div>
+          </form>
 
           <div className="mt-6 text-center">
             <p className="text-gray-400 text-sm">
               Already have an account?{' '}
-              <a href="#" className="text-blue-500 hover:text-blue-400 font-medium">
+              <Link to="/login" className="text-blue-500 hover:text-blue-400 font-medium">
                 Log in
-              </a>
+              </Link>
             </p>
           </div>
         </div>

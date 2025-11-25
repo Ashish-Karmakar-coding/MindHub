@@ -1,11 +1,15 @@
 import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuthStore } from '../lib/authStore';
+import { Loader } from 'lucide-react';
 
 export const Login = () => {
+  const navigate = useNavigate();
+  const { Login, isLoggingIn } = useAuthStore();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
-  const [rememberMe, setRememberMe] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -14,10 +18,12 @@ export const Login = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Login submitted:', { ...formData, rememberMe });
-    // Add your login logic here
+    const result = await Login(formData);
+    if (result.success) {
+      navigate('/');
+    }
   };
 
   return (
@@ -29,7 +35,7 @@ export const Login = () => {
             <p className="text-sm sm:text-base text-gray-400">Log in to your account</p>
           </div>
 
-          <div className="space-y-4 sm:space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
                 Email Address
@@ -43,6 +49,7 @@ export const Login = () => {
                 className="w-full px-3 py-2.5 sm:px-4 sm:py-3 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm sm:text-base placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="you@example.com"
                 required
+                disabled={isLoggingIn}
               />
             </div>
 
@@ -59,24 +66,33 @@ export const Login = () => {
                 className="w-full px-3 py-2.5 sm:px-4 sm:py-3 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm sm:text-base placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="••••••••"
                 required
+                disabled={isLoggingIn}
               />
             </div>
 
             
             <button
-              onClick={handleSubmit}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 sm:py-3 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+              type="submit"
+              disabled={isLoggingIn || !formData.email || !formData.password}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 sm:py-3 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              Log In
+              {isLoggingIn ? (
+                <>
+                  <Loader className="w-4 h-4 animate-spin" />
+                  <span>Logging in...</span>
+                </>
+              ) : (
+                'Log In'
+              )}
             </button>
-          </div>
+          </form>
 
           <div className="mt-6 text-center">
             <p className="text-gray-400 text-sm">
               Don't have an account?{' '}
-              <a href="#" className="text-blue-500 hover:text-blue-400 font-medium">
+              <Link to="/signup" className="text-blue-500 hover:text-blue-400 font-medium">
                 Sign up
-              </a>
+              </Link>
             </p>
           </div>
         </div>

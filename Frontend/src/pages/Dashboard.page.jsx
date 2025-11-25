@@ -1,6 +1,17 @@
-import { FileText, Link, Calendar } from 'lucide-react';
+import { useEffect } from 'react';
+import { FileText, Link, Loader } from 'lucide-react';
+import { useNotesStore } from '../lib/notesStore';
+import { useLinksStore } from '../lib/linksStore';
 
-export const Dashboard = ({ notes = [], links = [] }) => {
+export const Dashboard = () => {
+  const { notes, isLoading: isLoadingNotes, fetchNotes } = useNotesStore();
+  const { links, isLoading: isLoadingLinks, fetchLinks } = useLinksStore();
+
+  useEffect(() => {
+    fetchNotes();
+    fetchLinks();
+  }, [fetchNotes, fetchLinks]);
+
   const totalNotes = notes.length;
   const totalLinks = links.length;
 
@@ -12,6 +23,16 @@ export const Dashboard = ({ notes = [], links = [] }) => {
   const recentLinks = [...links]
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 3);
+
+  const isLoading = isLoadingNotes || isLoadingLinks;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <Loader className="w-10 h-10 animate-spin text-purple-700" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-900 p-4 sm:p-6">
@@ -61,9 +82,9 @@ export const Dashboard = ({ notes = [], links = [] }) => {
                 <p className="text-gray-400 text-sm">No notes yet</p>
               ) : (
                 recentNotes.map(note => (
-                  <div key={note.id} className="bg-gray-700 rounded p-3">
+                  <div key={note._id} className="bg-gray-700 rounded p-3">
                     <h3 className="text-white font-medium text-sm">{note.title}</h3>
-                    <p className="text-gray-400 text-xs mt-1 line-clamp-2">{note.content}</p>
+                    <p className="text-gray-400 text-xs mt-1 line-clamp-2">{note.content || ''}</p>
                   </div>
                 ))
               )}
@@ -78,7 +99,7 @@ export const Dashboard = ({ notes = [], links = [] }) => {
                 <p className="text-gray-400 text-sm">No links yet</p>
               ) : (
                 recentLinks.map(link => (
-                  <div key={link.id} className="bg-gray-700 rounded p-3">
+                  <div key={link._id} className="bg-gray-700 rounded p-3">
                     <h3 className="text-white font-medium text-sm">{link.title}</h3>
                     <p className="text-green-400 text-xs font-mono mt-1 truncate">
                       {link.url.replace(/^https?:\/\//, '')}
