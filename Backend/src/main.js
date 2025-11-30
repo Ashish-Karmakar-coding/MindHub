@@ -1,4 +1,3 @@
-import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
@@ -29,7 +28,7 @@ app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    
+
     if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
       callback(null, true);
     } else {
@@ -50,14 +49,11 @@ app.use("/api/notes",notesRouter)
 app.use("/api/files",fileRouter)
 app.use("/api/folders",folderRouter)
 
-// Serve static files from React app in production
 if(process.env.NODE_ENV === "production"){
-  // Serve static files from the React app
-  app.use(express.static(path.join(__dirname, '../../Frontend/dist')))
-  
-  // Catch all handler: send back React's index.html file for client-side routing
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../Frontend/dist/index.html'));
+  app.use(express.static(path.join(__dirname, '../frontend/dist')))
+  // ✅ Fixed: Added parameter name to wildcard route
+  app.get('/files{/*path}', (req, res) => {
+      res.sendFile(path.join(__dirname, "../frontend","dist","index.html"));
   });
 }
 
