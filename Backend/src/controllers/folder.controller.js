@@ -11,7 +11,7 @@ const createFolder = async (req, res) => {
       return res.status(400).json({ message: "Folder name is required" });
     }
 
-    const alreadyExists = await Folder.findOne({
+    alreadyExists = await Folder.findOne({
       user_id: userId,
       folderName: folderName,
     });
@@ -36,15 +36,13 @@ const createFolder = async (req, res) => {
 
 const deleteFolder = async (req, res) => {
   const { folderId } = req.params;
-  const userId = req.user._id;
   try {
-    const folder = await Folder.findOne({ _id: folderId, user_id: userId });
+    const folder = await Folder.findByIdAndDelete(folderId);
     if (!folder) {
-      return res.status(404).json({ message: "Folder not found or access denied" });
+      return res.status(402).json({ message: "Folder not found" });
     }
 
-    await Folder.findByIdAndDelete(folderId);
-    return res.status(200).json({ message: "Folder deleted successfully" });
+    return res.status(200).message({ message: "Folder deleted successfully" });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -58,11 +56,11 @@ const getAllFolders = async (req, res) => {
       createdAt: -1,
     });
 
-    if (!folders || folders.length === 0) {
-      return res.status(404).json({ message: "Folders not found" });
+    if (!folders) {
+      return res.status(402).json({ message: "Folders not found" });
     }
 
-    res.status(200).json(folders);
+    res.status(201).json(folders);
   } catch (error) {
     return res.status(500).json({ message: "Server Error" });
   }
@@ -71,12 +69,11 @@ const getAllFolders = async (req, res) => {
 const getAllFileInFolder = async (req, res) => {
   try {
     const { folderId } = req.params;
-    const userId = req.user._id;
 
-    const folder = await Folder.findOne({ _id: folderId, user_id: userId }).populate("files");
+    const folder = await Folder.findById(folderId).populate("files");
 
     if (!folder) {
-      return res.status(404).json({ message: "Folder not found or access denied" });
+      return res.status(404).json({ message: "Folder not found" });
     }
 
     return res.status(200).json({
@@ -98,54 +95,43 @@ const addFileToFolder = async (req, res) => {
       return res.status(400).json({ message: "Unauthorized" });
     }
     if (!folderId) {
-      return res.status(400).json({ message: "Folder is required" });
+      return res.status(402).json({ message: "Folder is required" });
     }
 
     const file = await File.findById(fileId);
-    if (!file) {
-      return res.status(404).json({ message: "File not found" });
-    }
 
-    // Check if file belongs to the user
-    if (file.uploadedBy && file.uploadedBy.toString() !== userId.toString()) {
-      return res.status(403).json({ message: "Unauthorized: You don't have permission to add this file" });
-    }
-
-    const folder = await Folder.findOne({ _id: folderId, user_id: userId });
-    if (!folder) {
-      return res.status(404).json({ message: "Folder not found or access denied" });
-    }
-
-    const updatedFolder = await Folder.findByIdAndUpdate(
+    const folder = await Folder.findByIdAndUpdate(
       folderId,
       { $push: { files: file._id } }, // Push file into array
       { new: true } // Return updated folder
     ).populate("files"); // optional: populate files info
 
-    res.json({ message: "File added to folder", folder: updatedFolder });
+    if (!folder) {
+      return res.status(404).json({ message: "Folder not found" });
+    }
+
+    res.json({ message: "File added to folder", folder });
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+    return res.status(502).json({ message: error.message });
   }
 };
 
 const removeFileFromFolder = async (req, res) => {
   try {
     const { folderId, fileId } = req.body; // IDs from frontend
-    const userId = req.user._id;
-
-    const folder = await Folder.findOne({ _id: folderId, user_id: userId });
-    if (!folder) {
-      return res.status(404).json({ message: "Folder not found or access denied" });
-    }
 
     // Remove fileId from folder.files
-    const updatedFolder = await Folder.findByIdAndUpdate(
+    const folder = await Folder.findByIdAndUpdate(
       folderId,
       { $pull: { files: fileId } }, // Remove file reference
       { new: true } // Return updated folder
     ).populate("files"); // optional: show remaining files
 
-    res.json({ message: "File removed from folder", folder: updatedFolder });
+    if (!folder) {
+      return res.status(404).json({ message: "Folder not found" });
+    }
+
+    res.json({ message: "File removed from folder", folder });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

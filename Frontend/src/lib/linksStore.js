@@ -11,7 +11,7 @@ export const useLinksStore = create((set, get) => ({
   fetchLinks: async () => {
     set({ isLoading: true });
     try {
-      const response = await axiosInstance.get("/links/get-link");
+      const response = await axiosInstance.get("/Links/get-link");
       set({ links: response.data || [] });
     } catch (error) {
       console.error("Fetch Links Error:", error);
@@ -29,7 +29,7 @@ export const useLinksStore = create((set, get) => ({
   addLink: async (linkData) => {
     set({ isAdding: true });
     try {
-      const response = await axiosInstance.post("/links/add-link", linkData);
+      const response = await axiosInstance.post("/Links/add-link", linkData);
       const newLink = response.data.link || response.data;
       set((state) => ({ links: [newLink, ...state.links] }));
       toast.success("Link added successfully!");
@@ -48,7 +48,7 @@ export const useLinksStore = create((set, get) => ({
   deleteLink: async (linkId) => {
     set({ isDeleting: true });
     try {
-      await axiosInstance.delete(`/links/delete-link/${linkId}`);
+      await axiosInstance.delete(`/Links/delete-link/${linkId}`);
       set((state) => ({
         links: state.links.filter((link) => link._id !== linkId),
       }));

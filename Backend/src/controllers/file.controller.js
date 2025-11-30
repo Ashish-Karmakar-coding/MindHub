@@ -5,10 +5,6 @@ const uploadFile = async (req,res) =>{
 
     const userId = req.user._id
 
-    if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
-    }
-
 try {
     const result = await cloudinary.uploader.upload(req.file.path, {
       folder: "my_uploads",
@@ -35,7 +31,7 @@ const getFiles = async (req,res) =>{
     try {
 
         const files = await File.find({ uploadedBy: userId }).sort({ createdAt: -1 });
-        if (!files || files.length === 0) {
+        if (!files) {
             return res.status(404).json({ message: "No files found." });
         }
 
@@ -50,17 +46,11 @@ const deleteFile = async (req,res) =>{
 
     try {
     const { id } = req.params; // MongoDB file _id
-    const userId = req.user._id;
 
     // 1. Find file in DB
     const file = await File.findById(id);
     if (!file) {
       return res.status(404).json({ message: "File not found" });
-    }
-
-    // Check if file belongs to the user
-    if (file.uploadedBy && file.uploadedBy.toString() !== userId.toString()) {
-      return res.status(403).json({ message: "Unauthorized: You don't have permission to delete this file" });
     }
 
     // 2. Delete from Cloudinary
