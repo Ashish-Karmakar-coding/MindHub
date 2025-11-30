@@ -2,12 +2,17 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { connectDB } from './database/connectDB.js';
 import userRouter from './routes/users.route.js';
 import linksRouter from './routes/links.router.js';
 import notesRouter from './routes/notes.router.js';
 import fileRouter from './routes/files.router.js';
 import folderRouter from './routes/folder.router.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 
 dotenv.config();
