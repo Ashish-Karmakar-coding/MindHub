@@ -4,7 +4,6 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import fs from 'fs';
 import { connectDB } from './database/connectDB.js';
 import userRouter from './routes/users.route.js';
 import linksRouter from './routes/links.router.js';
@@ -53,45 +52,12 @@ app.use("/api/folders",folderRouter)
 
 // Serve static files from React app in production
 if(process.env.NODE_ENV === "production"){
-  // Try multiple possible paths for the frontend dist folder
-  const possiblePaths = [
-    path.join(__dirname, '../../Frontend/dist'),  // Local development structure
-    path.join(__dirname, '../Frontend/dist'),     // Alternative structure
-    path.join(process.cwd(), 'Frontend/dist'),    // From project root
-    path.join(process.cwd(), 'frontend/dist'),    // Lowercase variant
-  ];
-  
-  let staticPath = possiblePaths[0];
-  
-  // Find the first path that exists
-  for (const testPath of possiblePaths) {
-    try {
-      if (fs.existsSync(testPath)) {
-        staticPath = testPath;
-        console.log(`Serving static files from: ${staticPath}`);
-        break;
-      }
-    } catch (error) {
-      // Continue to next path
-    }
-  }
-  
   // Serve static files from the React app
-  app.use(express.static(staticPath));
+  app.use(express.static(path.join(__dirname, '../../Frontend/dist')))
   
   // Catch all handler: send back React's index.html file for client-side routing
-  app.get('*', (req, res, next) => {
-    // Skip API routes
-    if (req.path.startsWith('/api')) {
-      return next();
-    }
-    const indexPath = path.join(staticPath, 'index.html');
-    res.sendFile(indexPath, (err) => {
-      if (err) {
-        console.error('Error sending index.html:', err);
-        res.status(500).send('Error loading application');
-      }
-    });
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../../Frontend/dist/index.html'));
   });
 }
 
