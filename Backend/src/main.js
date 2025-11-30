@@ -1,3 +1,4 @@
+import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
@@ -44,16 +45,16 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use("/api/users",userRouter)
-app.use("/api/Links",linksRouter)
+app.use("/api/links",linksRouter)
 app.use("/api/notes",notesRouter)
 app.use("/api/files",fileRouter)
 app.use("/api/folders",folderRouter)
 
 if(process.env.NODE_ENV === "production"){
-  app.use(express.static(path.join(__dirname, '../frontend/dist')))
+  app.use(express.static(path.join(__dirname, '../../Frontend/dist')))
   // ✅ Fixed: Added parameter name to wildcard route
-  app.get('/files{/*path}', (req, res) => {
-      res.sendFile(path.join(__dirname, "../frontend","dist","index.html"));
+  app.get('*', (req, res) => {
+      res.sendFile(path.join(__dirname, "../../Frontend","dist","index.html"));
   });
 }
 

@@ -40,11 +40,13 @@ const getNotes = async(req,res) =>{
 
 const deleteNote = async (req,res) =>{
     const {id:noteId} = req.params;
+    const userId = req.user._id;
 
     try {
-        const deletedNote = await Note.findByIdAndDelete(noteId);
-        if(!deletedNote) return res.status(404).json({message: "Note not found"});
+        const note = await Note.findOne({ _id: noteId, user_id: userId });
+        if(!note) return res.status(404).json({message: "Note not found or access denied"});
         
+        await Note.findByIdAndDelete(noteId);
         return res.status(200).json({message: "Note deleted successfully"});
     } catch (error) {
         return res.status(500).json({message: error.message});
@@ -54,15 +56,17 @@ const deleteNote = async (req,res) =>{
 const editNote = async (req,res) =>{
     const {id:noteId} = req.params;
     const {title,content} = req.body;
+    const userId = req.user._id;
 
     try {
+        const note = await Note.findOne({ _id: noteId, user_id: userId });
+        if(!note) return res.status(404).json({message: "Note not found or access denied"});
+
         const updatedNote = await Note.findByIdAndUpdate(
             noteId,
             { title, content },
             { new: true } // This returns the updated document
         );
-        
-        if(!updatedNote) return res.status(404).json({message: "Note not found"});
         
         return res.status(200).json({message: "Note updated successfully", note: updatedNote}); // Fixed message
     } catch (error) {
