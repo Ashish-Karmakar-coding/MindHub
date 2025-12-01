@@ -53,6 +53,13 @@ app.use("/api/folders",folderRouter)
 if(process.env.NODE_ENV === "production"){
   app.use(express.static(path.join(__dirname, '../Frontend/dist')))
   // ✅ Fixed: Added parameter name to wildcard route
+
+  // run in node REPL or add a temporary console.log in server.js
+console.log('__dirname:', __dirname);
+console.log('dist exists:', require('fs').existsSync(path.join(__dirname, '../Frontend/dist')));
+console.log('index.html exists:', require('fs').existsSync(path.join(__dirname, '../Frontend/dist/index.html')));
+
+
   app.get('/files{/*path}', (req, res) => {
       res.sendFile(path.join(__dirname,"../Frontend","dist","index.html"));
   });
