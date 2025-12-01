@@ -1,29 +1,21 @@
 {
   "name": "mindhub",
   "version": "1.0.0",
-  "description": "Full-stack productivity workspace with React (frontend) and Express/MongoDB (backend).",
+  "description": "",
   "main": "index.js",
-  "type": "commonjs",
   "scripts": {
     "build": "npm install --prefix Backend && npm install --prefix frontend && npm run build --prefix Frontend",
     "start": "npm run start --prefix Backend"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/USERNAME/MindHub.git"
+    "url": "git+https://github.com/Ashish-Karmakar-coding/MindHub.git"
   },
-  "bugs": {
-    "url": "https://github.com/USERNAME/MindHub/issues"
-  },
-  "homepage": "https://github.com/USERNAME/MindHub#readme",
-  "keywords": [
-    "react",
-    "express",
-    "mongodb",
-    "fullstack",
-    "productivity"
-  ],
+  "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Ashish-Karmakar-coding/MindHub/issues"
+  },
+  "homepage": "https://github.com/Ashish-Karmakar-coding/MindHub#readme"
 }
-
