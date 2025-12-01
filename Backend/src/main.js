@@ -35,12 +35,12 @@ app.use("/api/files",fileRouter)
 app.use("/api/folders",folderRouter)
 
 if(process.env.NODE_ENV === "production"){
-  app.use(express.static(path.join(__dirname, '../Frontend/dist')))
-  // ✅ Fixed: Added parameter name to wildcard route
+  app.use(express.static(path.join(__dirname, '../Frontend/dist')));
 
-  app.get("/files{/*path}", (req, res) => {
-      res.sendFile(path.join(__dirname,"../Frontend/dist","index.html"));
-  });
+// fallback for client-side routes
+app.get('/*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../Frontend/dist', 'index.html'));
+});
 }
 
 app.listen(PORT,()=>{
