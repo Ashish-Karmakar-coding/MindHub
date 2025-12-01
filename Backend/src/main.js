@@ -39,7 +39,7 @@ if(process.env.NODE_ENV === "production"){
   // ✅ Fixed: Added parameter name to wildcard route
 
   app.get("/files{/*path}", (req, res) => {
-      res.sendFile(path.join(__dirname,"../Frontend","dist","index.html"));
+      res.sendFile(path.join(__dirname,"../Frontend/dist","index.html"));
   });
 }
 
