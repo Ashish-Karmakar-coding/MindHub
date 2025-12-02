@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Save, X, Loader } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, Loader, Search } from 'lucide-react';
 import { useNotesStore } from '../lib/notesStore';
 
 export const Notes = () => {
@@ -7,6 +7,7 @@ export const Notes = () => {
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({ title: '', content: '' });
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchNotes();
@@ -53,6 +54,11 @@ export const Notes = () => {
     setFormData({ title: '', content: '' });
   };
 
+  const filteredNotes = notes.filter(note => 
+    note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (note.content && note.content.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
   return (
     <div className="min-h-screen bg-gray-900 p-3 sm:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
@@ -60,18 +66,34 @@ export const Notes = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-4">
           <div>
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">My Notes</h1>
-            <p className="text-gray-400 text-xs sm:text-sm mt-1">{notes.length} {notes.length === 1 ? 'note' : 'notes'} total</p>
+            <p className="text-gray-400 text-xs sm:text-sm mt-1">{filteredNotes.length} {filteredNotes.length === 1 ? 'note' : 'notes'} found</p>
           </div>
-          {!isAddingNote && !editingId && (
-            <button
-              onClick={() => setIsAddingNote(true)}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg transition duration-200 font-medium w-full sm:w-auto justify-center disabled:opacity-50"
-              disabled={isLoading}
-            >
-              <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="text-sm sm:text-base">Add Note</span>
-            </button>
-          )}
+
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <div className="relative w-full sm:w-64">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-4 w-4 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search notes..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="block w-full pl-10 pr-3 py-2 border border-gray-700 rounded-lg leading-5 bg-gray-800 text-gray-300 placeholder-gray-400 focus:outline-none focus:bg-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 sm:text-sm transition duration-150 ease-in-out"
+              />
+            </div>
+
+            {!isAddingNote && !editingId && (
+              <button
+                onClick={() => setIsAddingNote(true)}
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg transition duration-200 font-medium w-full sm:w-auto justify-center disabled:opacity-50"
+                disabled={isLoading}
+              >
+                <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="text-sm sm:text-base">Add Note</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Notes Grid */}
@@ -81,12 +103,14 @@ export const Notes = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-            {notes.length === 0 ? (
+            {filteredNotes.length === 0 ? (
               <div className="col-span-full text-center py-8 sm:py-12">
-                <p className="text-gray-400 text-base sm:text-lg">No notes yet. Create your first note!</p>
+                <p className="text-gray-400 text-base sm:text-lg">
+                  {searchQuery ? 'No notes found matching your search.' : 'No notes yet. Create your first note!'}
+                </p>
               </div>
             ) : (
-              notes.map((note) => (
+              filteredNotes.map((note) => (
                 <div
                   key={note._id}
                   className="bg-gray-800 rounded-lg p-4 sm:p-5 border border-gray-700 hover:border-gray-600 transition duration-200"

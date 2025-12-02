@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Plus, ExternalLink, Trash2, Save, X, Loader } from 'lucide-react';
+import { Plus, ExternalLink, Trash2, Save, X, Loader, Search } from 'lucide-react';
 import { useLinksStore } from '../lib/linksStore';
 
 export const Links = () => {
   const { links, isLoading, isAdding, isDeleting, fetchLinks, addLink, deleteLink } = useLinksStore();
   const [isAddingLink, setIsAddingLink] = useState(false);
-  const [formData, setFormData] = useState({ 
-    title: '', 
-    url: '', 
-    description: '' 
+  const [formData, setFormData] = useState({
+    title: '',
+    url: '',
+    description: ''
   });
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchLinks();
@@ -28,7 +29,7 @@ export const Links = () => {
         url: url,
         description: formData.description.trim()
       });
-      
+
       if (result.success) {
         setFormData({ title: '', url: '', description: '' });
         setIsAddingLink(false);
@@ -49,6 +50,12 @@ export const Links = () => {
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
+  const filteredLinks = links.filter(link =>
+    link.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    link.url.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (link.description && link.description.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
   return (
     <div className="min-h-screen bg-gray-900 p-3 sm:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
@@ -57,19 +64,35 @@ export const Links = () => {
           <div>
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">My Links</h1>
             <p className="text-gray-400 text-xs sm:text-sm mt-1">
-              {links.length} {links.length === 1 ? 'link' : 'links'} total
+              {filteredLinks.length} {filteredLinks.length === 1 ? 'link' : 'links'} found
             </p>
           </div>
-          {!isAddingLink && (
-            <button
-              onClick={() => setIsAddingLink(true)}
-              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg transition duration-200 font-medium w-full sm:w-auto justify-center disabled:opacity-50"
-              disabled={isLoading}
-            >
-              <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="text-sm sm:text-base">Add Link</span>
-            </button>
-          )}
+
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <div className="relative w-full sm:w-64">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-4 w-4 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search links..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="block w-full pl-10 pr-3 py-2 border border-gray-700 rounded-lg leading-5 bg-gray-800 text-gray-300 placeholder-gray-400 focus:outline-none focus:bg-gray-700 focus:border-green-500 focus:ring-1 focus:ring-green-500 sm:text-sm transition duration-150 ease-in-out"
+              />
+            </div>
+
+            {!isAddingLink && (
+              <button
+                onClick={() => setIsAddingLink(true)}
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg transition duration-200 font-medium w-full sm:w-auto justify-center disabled:opacity-50"
+                disabled={isLoading}
+              >
+                <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="text-sm sm:text-base">Add Link</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Links Grid */}
@@ -79,14 +102,14 @@ export const Links = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-            {links.length === 0 ? (
+            {filteredLinks.length === 0 ? (
               <div className="col-span-full text-center py-8 sm:py-12">
                 <p className="text-gray-400 text-base sm:text-lg">
-                  No links yet. Add your first link!
+                  {searchQuery ? 'No links found matching your search.' : 'No links yet. Add your first link!'}
                 </p>
               </div>
             ) : (
-              links.map((link) => (
+              filteredLinks.map((link) => (
                 <div
                   key={link._id}
                   className="bg-gray-800 rounded-lg p-4 sm:p-5 border border-gray-700 hover:border-green-600 transition duration-200 group"
@@ -114,7 +137,7 @@ export const Links = () => {
                     </div>
                   </div>
 
-                  <div 
+                  <div
                     onClick={() => openLink(link.url)}
                     className="mb-2 sm:mb-3 cursor-pointer"
                   >
@@ -164,7 +187,7 @@ export const Links = () => {
                 <X className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
             </div>
-            
+
             <div className="space-y-3 sm:space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1 sm:mb-2">
