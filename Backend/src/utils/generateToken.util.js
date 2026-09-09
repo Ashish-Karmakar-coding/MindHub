@@ -8,11 +8,12 @@ export const generateToken = (userId,res) => {
         expiresIn: '30d'
     })
 
-    res.cookie('jwt', token,{
+    res.cookie('jwt', token, {
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
         httpOnly: true,
-        sameSite: 'Strict',
-        secure : process.env.NODE_ENV !== 'development', // Use secure cookies in production
+        // 'None' required for cross-domain cookies (frontend/backend on different Vercel domains)
+        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Strict',
+        secure: process.env.NODE_ENV !== 'development', // HTTPS required with sameSite='None'
     })
 
     return token
