@@ -1,34 +1,22 @@
 # Dependencies
 node_modules/
 
-# Environment variables
+# Environment variables — NEVER commit these!
 .env
 .env.local
 .env.production
-.env.development
+
+# Temp upload directory (disk storage — kept for local dev)
+public/temp/*
+!public/temp/.gitkeep
+
+# Vercel output
+.vercel/
 
 # Logs
-logs
 *.log
 npm-debug.log*
-yarn-debug.log*
-pnpm-debug.log*
-lerna-debug.log*
 
 # OS
 .DS_Store
 Thumbs.db
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# Uploads (if storing locally)
-uploads/
-temp/
-
-# Vercel
-.vercel

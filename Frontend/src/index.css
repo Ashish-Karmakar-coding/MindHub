@@ -1,1 +1,266 @@
 @import "tailwindcss";
+
+/* ============================================
+   MINDHUB — NEUBRUTALISM DESIGN SYSTEM
+   ============================================ */
+
+:root {
+  /* Colors */
+  --bg-base: #0a0a0a;
+  --bg-surface: #111111;
+  --bg-elevated: #1a1a1a;
+
+  --accent-yellow: #FFE500;
+  --accent-cyan: #00F5FF;
+  --accent-coral: #FF3B3B;
+  --accent-green: #00FF88;
+  --accent-purple: #C084FC;
+
+  --border-primary: #ffffff;
+  --border-dim: #333333;
+
+  --text-primary: #ffffff;
+  --text-secondary: #aaaaaa;
+  --text-muted: #666666;
+
+  /* Shadows — hard offset, no blur */
+  --shadow-sm: 2px 2px 0px var(--border-primary);
+  --shadow-md: 4px 4px 0px var(--border-primary);
+  --shadow-lg: 6px 6px 0px var(--border-primary);
+  --shadow-yellow: 4px 4px 0px var(--accent-yellow);
+  --shadow-cyan: 4px 4px 0px var(--accent-cyan);
+  --shadow-coral: 4px 4px 0px var(--accent-coral);
+
+  /* Borders */
+  --border-width: 2px;
+  --border-width-thick: 3px;
+}
+
+/* Base Reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-yellow) var(--bg-surface);
+}
+
+body {
+  margin: 0;
+  font-family: 'Space Grotesk', sans-serif;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   NEUBRUTALISM UTILITY CLASSES
+   ============================================ */
+
+/* Cards */
+.nb-card {
+  background: var(--bg-surface);
+  border: var(--border-width-thick) solid var(--border-primary);
+  box-shadow: var(--shadow-md);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.nb-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.nb-card-yellow {
+  box-shadow: var(--shadow-yellow);
+}
+
+.nb-card-cyan {
+  box-shadow: var(--shadow-cyan);
+}
+
+.nb-card-coral {
+  box-shadow: var(--shadow-coral);
+}
+
+/* Buttons */
+.nb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border: var(--border-width-thick) solid var(--border-primary);
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  position: relative;
+  text-decoration: none;
+  letter-spacing: 0.02em;
+}
+
+.nb-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px transparent !important;
+}
+
+.nb-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.nb-btn-primary {
+  background: var(--accent-yellow);
+  color: #000000;
+  box-shadow: var(--shadow-md);
+  padding: 10px 20px;
+}
+
+.nb-btn-primary:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.nb-btn-secondary {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-md);
+  padding: 10px 20px;
+}
+
+.nb-btn-secondary:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.nb-btn-danger {
+  background: var(--accent-coral);
+  color: #ffffff;
+  box-shadow: var(--shadow-coral);
+  padding: 8px 16px;
+}
+
+.nb-btn-danger:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px var(--accent-coral);
+}
+
+.nb-btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border-color: var(--border-dim);
+  box-shadow: none;
+  padding: 8px 12px;
+}
+
+.nb-btn-ghost:hover:not(:disabled) {
+  border-color: var(--border-primary);
+  color: var(--text-primary);
+}
+
+/* Inputs */
+.nb-input {
+  width: 100%;
+  background: var(--bg-elevated);
+  border: var(--border-width-thick) solid var(--border-dim);
+  color: var(--text-primary);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.95rem;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.nb-input::placeholder {
+  color: var(--text-muted);
+}
+
+.nb-input:focus {
+  border-color: var(--accent-yellow);
+  box-shadow: 3px 3px 0px var(--accent-yellow);
+}
+
+.nb-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.nb-textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* Labels */
+.nb-label {
+  display: block;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+/* Tags/Badges */
+.nb-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border: 2px solid currentColor;
+}
+
+/* Divider */
+.nb-divider {
+  border: none;
+  border-top: 2px solid var(--border-dim);
+  margin: 16px 0;
+}
+
+/* Modal Overlay */
+.nb-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 50;
+}
+
+.nb-modal {
+  background: var(--bg-surface);
+  border: var(--border-width-thick) solid var(--border-primary);
+  box-shadow: 8px 8px 0px var(--accent-yellow);
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent-yellow);
+}
+
+/* Selection */
+::selection {
+  background: var(--accent-yellow);
+  color: #000000;
+}

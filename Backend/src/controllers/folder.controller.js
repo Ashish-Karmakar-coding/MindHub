@@ -1,6 +1,6 @@
 import { Folder } from "../models/folder.model.js";
 import { File } from "../models/file.model.js";
-import { User } from "../models/user.model.js";
+import { redis } from "../utils/redis.util.js";
 
 const createFolder = async (req, res) => {
   try {
@@ -11,7 +11,7 @@ const createFolder = async (req, res) => {
       return res.status(400).json({ message: "Folder name is required" });
     }
 
-    alreadyExists = await Folder.findOne({
+    const alreadyExists = await Folder.findOne({
       user_id: userId,
       folderName: folderName,
     });
@@ -27,22 +27,27 @@ const createFolder = async (req, res) => {
     });
 
     await newFolder.save();
+    await redis.del(`folders:${userId}`);
 
-    return res.status(201).json({ message: "Folder created successfully" });
+    return res.status(201).json({ message: "Folder created successfully", folder: newFolder });
   } catch (error) {
-    return res.status(500).json({ message: "Server Error" });
+    return res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
 
 const deleteFolder = async (req, res) => {
   const { folderId } = req.params;
+  const userId = req.user._id;
   try {
     const folder = await Folder.findByIdAndDelete(folderId);
     if (!folder) {
-      return res.status(402).json({ message: "Folder not found" });
+      return res.status(404).json({ message: "Folder not found" });
     }
 
-    return res.status(200).message({ message: "Folder deleted successfully" });
+    await redis.del(`folders:${userId}`);
+    await redis.del(`folder_files:${folderId}`);
+
+    return res.status(200).json({ message: "Folder deleted successfully" });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -51,24 +56,33 @@ const deleteFolder = async (req, res) => {
 const getAllFolders = async (req, res) => {
   try {
     const userId = req.user._id;
+    const cacheKey = `folders:${userId}`;
+
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      return res.status(200).json(cached);
+    }
 
     const folders = await Folder.find({ user_id: userId }).sort({
       createdAt: -1,
     });
 
-    if (!folders) {
-      return res.status(402).json({ message: "Folders not found" });
-    }
-
-    res.status(201).json(folders);
+    await redis.set(cacheKey, folders, { ex: 300 });
+    res.status(200).json(folders);
   } catch (error) {
-    return res.status(500).json({ message: "Server Error" });
+    return res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
 
 const getAllFileInFolder = async (req, res) => {
   try {
     const { folderId } = req.params;
+    const cacheKey = `folder_files:${folderId}`;
+
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      return res.status(200).json(cached);
+    }
 
     const folder = await Folder.findById(folderId).populate("files");
 
@@ -76,13 +90,16 @@ const getAllFileInFolder = async (req, res) => {
       return res.status(404).json({ message: "Folder not found" });
     }
 
-    return res.status(200).json({
+    const result = {
       success: true,
       folderName: folder.folderName,
-      files: folder.files, // all file details populated
-    });
+      files: folder.files,
+    };
+
+    await redis.set(cacheKey, result, { ex: 300 });
+    return res.status(200).json(result);
   } catch (error) {
-    return res.status(500).json({ message: "Server Error" });
+    return res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
 
@@ -95,41 +112,50 @@ const addFileToFolder = async (req, res) => {
       return res.status(400).json({ message: "Unauthorized" });
     }
     if (!folderId) {
-      return res.status(402).json({ message: "Folder is required" });
+      return res.status(400).json({ message: "Folder is required" });
     }
 
     const file = await File.findById(fileId);
+    if (!file) {
+      return res.status(404).json({ message: "File not found" });
+    }
 
     const folder = await Folder.findByIdAndUpdate(
       folderId,
-      { $push: { files: file._id } }, // Push file into array
-      { new: true } // Return updated folder
-    ).populate("files"); // optional: populate files info
+      { $push: { files: file._id } },
+      { new: true }
+    ).populate("files");
 
     if (!folder) {
       return res.status(404).json({ message: "Folder not found" });
     }
 
+    await redis.del(`folders:${userId}`);
+    await redis.del(`folder_files:${folderId}`);
+
     res.json({ message: "File added to folder", folder });
   } catch (error) {
-    return res.status(502).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
 
 const removeFileFromFolder = async (req, res) => {
   try {
-    const { folderId, fileId } = req.body; // IDs from frontend
+    const userId = req.user._id;
+    const { folderId, fileId } = req.body;
 
-    // Remove fileId from folder.files
     const folder = await Folder.findByIdAndUpdate(
       folderId,
-      { $pull: { files: fileId } }, // Remove file reference
-      { new: true } // Return updated folder
-    ).populate("files"); // optional: show remaining files
+      { $pull: { files: fileId } },
+      { new: true }
+    ).populate("files");
 
     if (!folder) {
       return res.status(404).json({ message: "Folder not found" });
     }
+
+    await redis.del(`folders:${userId}`);
+    await redis.del(`folder_files:${folderId}`);
 
     res.json({ message: "File removed from folder", folder });
   } catch (error) {

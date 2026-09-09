@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../lib/authStore';
-import { Loader } from 'lucide-react';
 
 export const Signup = () => {
   const navigate = useNavigate();
@@ -10,26 +9,22 @@ export const Signup = () => {
     name: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
   });
   const [error, setError] = useState('');
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
     setError('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;
     }
-
     if (formData.password.length < 6) {
       setError('Password must be at least 6 characters');
       return;
@@ -38,124 +33,223 @@ export const Signup = () => {
     const result = await signUp({
       name: formData.name,
       email: formData.email,
-      password: formData.password
+      password: formData.password,
     });
-    
-    if (result.success) {
-      navigate('/');
-    }
+
+    if (result.success) navigate('/');
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4 py-8 sm:p-6">
-      <div className="max-w-md w-full">
-        <div className="bg-gray-800 rounded-lg shadow-xl p-6 sm:p-8">
-          <div className="text-center mb-6 sm:mb-8">
-            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Create Account</h1>
-            <p className="text-sm sm:text-base text-gray-400">Sign up to get started</p>
+    <div
+      style={{
+        minHeight: '100vh',
+        background: 'var(--bg-base)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '24px 16px',
+        fontFamily: "'Space Grotesk', sans-serif",
+      }}
+    >
+      {/* Background grid */}
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundImage: 'linear-gradient(var(--border-dim) 1px, transparent 1px), linear-gradient(90deg, var(--border-dim) 1px, transparent 1px)',
+          backgroundSize: '40px 40px',
+          opacity: 0.3,
+          pointerEvents: 'none',
+        }}
+      />
+
+      <div style={{ width: '100%', maxWidth: 440, position: 'relative' }}>
+        {/* Header */}
+        <div style={{ marginBottom: 32 }}>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '10px',
+              background: 'var(--accent-cyan)',
+              border: '3px solid var(--border-primary)',
+              padding: '6px 14px',
+              marginBottom: 24,
+              boxShadow: '4px 4px 0px var(--border-primary)',
+            }}
+          >
+            <span style={{ fontWeight: 800, fontSize: '1rem', color: '#000', letterSpacing: '0.1em' }}>MINDHUB</span>
           </div>
 
+          <h1
+            style={{
+              fontSize: 'clamp(2rem, 5vw, 3rem)',
+              fontWeight: 800,
+              color: 'var(--text-primary)',
+              margin: '0 0 8px 0',
+              lineHeight: 1.1,
+              letterSpacing: '-0.02em',
+            }}
+          >
+            CREATE
+            <br />
+            <span style={{ color: 'var(--accent-cyan)' }}>ACCOUNT.</span>
+          </h1>
+          <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem', fontWeight: 500 }}>
+            Start organizing your knowledge
+          </p>
+        </div>
+
+        {/* Form card */}
+        <div
+          style={{
+            background: 'var(--bg-surface)',
+            border: '3px solid var(--border-primary)',
+            boxShadow: '6px 6px 0px var(--accent-cyan)',
+            padding: '32px',
+          }}
+        >
+          {/* Error banner */}
           {error && (
-            <div className="bg-red-900 bg-opacity-30 border border-red-500 text-red-400 px-4 py-3 rounded-lg text-sm mb-4">
-              {error}
+            <div
+              style={{
+                background: 'rgba(255,59,59,0.1)',
+                border: '2px solid var(--accent-coral)',
+                color: 'var(--accent-coral)',
+                padding: '10px 14px',
+                marginBottom: '20px',
+                fontWeight: 600,
+                fontSize: '0.85rem',
+              }}
+            >
+              ⚠ {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
-                Full Name
-              </label>
+              <label className="nb-label">Full Name</label>
               <input
                 type="text"
-                id="name"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full px-3 py-2.5 sm:px-4 sm:py-3 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm sm:text-base placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="John Doe"
                 required
                 disabled={isSigningUp}
+                className="nb-input"
               />
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
-                Email Address
-              </label>
+              <label className="nb-label">Email Address</label>
               <input
                 type="email"
-                id="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="you@example.com"
                 required
                 disabled={isSigningUp}
+                className="nb-input"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
-                Password
-              </label>
+              <label className="nb-label">Password</label>
               <input
                 type="password"
-                id="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="••••••••"
+                placeholder="Min. 6 characters"
                 required
                 disabled={isSigningUp}
+                className="nb-input"
               />
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-2">
-                Confirm Password
-              </label>
+              <label className="nb-label">Confirm Password</label>
               <input
                 type="password"
-                id="confirmPassword"
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="••••••••"
+                placeholder="Repeat password"
                 required
                 disabled={isSigningUp}
+                className="nb-input"
               />
             </div>
 
             <button
               type="submit"
               disabled={isSigningUp || !formData.name || !formData.email || !formData.password || !formData.confirmPassword}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="nb-btn nb-btn-primary"
+              style={{
+                width: '100%',
+                padding: '14px 20px',
+                fontSize: '1rem',
+                letterSpacing: '0.08em',
+                marginTop: '4px',
+                background: 'var(--accent-cyan)',
+              }}
             >
               {isSigningUp ? (
                 <>
-                  <Loader className="w-4 h-4 animate-spin" />
-                  <span>Signing up...</span>
+                  <div
+                    style={{
+                      width: 18,
+                      height: 18,
+                      border: '2px solid #000',
+                      borderTop: '2px solid transparent',
+                      borderRadius: '50%',
+                      animation: 'spin 0.8s linear infinite',
+                    }}
+                  />
+                  <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                  CREATING...
                 </>
               ) : (
-                'Sign Up'
+                '→ SIGN UP'
               )}
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-gray-400 text-sm">
-              Already have an account?{' '}
-              <Link to="/login" className="text-blue-500 hover:text-blue-400 font-medium">
-                Log in
-              </Link>
-            </p>
-          </div>
+          <hr className="nb-divider" style={{ marginTop: 24 }} />
+
+          <p style={{ textAlign: 'center', margin: 0, color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 500 }}>
+            Already have an account?{' '}
+            <Link
+              to="/login"
+              style={{
+                color: 'var(--accent-cyan)',
+                fontWeight: 700,
+                textDecoration: 'none',
+                borderBottom: '2px solid var(--accent-cyan)',
+              }}
+            >
+              Log in →
+            </Link>
+          </p>
         </div>
+
+        {/* Decorative offset */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: -12,
+            right: -12,
+            width: '100%',
+            height: '100%',
+            border: '3px solid var(--border-dim)',
+            zIndex: -1,
+            maxWidth: 440,
+            pointerEvents: 'none',
+          }}
+        />
       </div>
     </div>
   );
-}
+};

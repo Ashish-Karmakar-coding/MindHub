@@ -2,8 +2,6 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import { connectDB } from './database/connectDB.js';
 import userRouter from './routes/users.route.js';
 import linksRouter from './routes/links.router.js';
@@ -11,38 +9,57 @@ import notesRouter from './routes/notes.router.js';
 import fileRouter from './routes/files.router.js';
 import folderRouter from './routes/folder.router.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+
+const allowedOrigins = [
+  'http://localhost:5173',
+  process.env.FRONTEND_URL,
+].filter(Boolean);
 
 app.use(cors({
-    origin: "http://localhost:5173", 
-    credentials: true, 
-}));                                                                                                       
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+}));
 
 app.use(express.json());
 app.use(cookieParser());
 
-app.use("/api/users",userRouter)
-app.use("/api/Links",linksRouter)
-app.use("/api/notes",notesRouter)
-app.use("/api/files",fileRouter)
-app.use("/api/folders",folderRouter)
+// Connect to DB on first request (serverless-friendly)
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error('DB connection error:', error);
+    res.status(500).json({ message: 'Database connection failed' });
+  }
+});
 
-if(process.env.NODE_ENV === "production"){
-    app.use(express.static(path.join(__dirname, '../../Frontend/dist')))
-    // ✅ Fixed: Added parameter name to wildcard route
-    app.get('/files{/*path}', (req, res) => {
-        res.sendFile(path.join(__dirname,"..","../Frontend","dist","index.html"));
-    });
+app.use('/api/users', userRouter);
+app.use('/api/Links', linksRouter);
+app.use('/api/notes', notesRouter);
+app.use('/api/files', fileRouter);
+app.use('/api/folders', folderRouter);
+
+// Health check
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+// Only start server in non-serverless environments (local dev)
+const PORT = process.env.PORT || 3000;
+if (process.env.VERCEL !== '1') {
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}....`);
+  });
 }
 
-app.listen(PORT,()=>{
-    connectDB();
-    console.log(`Server is running on port ${PORT}....`);
-})
+export default app;

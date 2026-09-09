@@ -1,35 +1,56 @@
 import { useState, useEffect } from 'react';
-import { Plus, ExternalLink, Trash2, Save, X, Loader, Search } from 'lucide-react';
 import { useLinksStore } from '../lib/linksStore';
 
+const PlusIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square">
+    <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+  </svg>
+);
+const ExternalLinkIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square">
+    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+    <polyline points="15,3 21,3 21,9" /><line x1="10" y1="14" x2="21" y2="3" />
+  </svg>
+);
+const TrashIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square">
+    <polyline points="3,6 5,6 21,6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+  </svg>
+);
+const SearchIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square">
+    <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+  </svg>
+);
+const CloseIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square">
+    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+);
+
 export const Links = () => {
-  const { links, isLoading, isAdding, isDeleting, fetchLinks, addLink, deleteLink } = useLinksStore();
+  const {
+    links, isLoading, isAdding, isDeleting,
+    fetchLinks, addLink, deleteLink,
+  } = useLinksStore();
+
   const [isAddingLink, setIsAddingLink] = useState(false);
-  const [formData, setFormData] = useState({
-    title: '',
-    url: '',
-    description: ''
-  });
+  const [formData, setFormData] = useState({ title: '', url: '', description: '' });
   const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    fetchLinks();
-  }, [fetchLinks]);
+  useEffect(() => { fetchLinks(); }, [fetchLinks]);
 
   const handleAdd = async () => {
     if (formData.title.trim() && formData.url.trim()) {
-      // Add https:// if not present
       let url = formData.url.trim();
       if (!url.startsWith('http://') && !url.startsWith('https://')) {
         url = 'https://' + url;
       }
-
       const result = await addLink({
         title: formData.title.trim(),
-        url: url,
-        description: formData.description.trim()
+        url,
+        description: formData.description.trim(),
       });
-
       if (result.success) {
         setFormData({ title: '', url: '', description: '' });
         setIsAddingLink(false);
@@ -37,224 +58,477 @@ export const Links = () => {
     }
   };
 
-  const handleDelete = async (linkId) => {
-    await deleteLink(linkId);
-  };
-
   const handleCancel = () => {
     setIsAddingLink(false);
     setFormData({ title: '', url: '', description: '' });
   };
 
-  const openLink = (url) => {
-    window.open(url, '_blank', 'noopener,noreferrer');
-  };
+  const openLink = (url) => window.open(url, '_blank', 'noopener,noreferrer');
 
-  const filteredLinks = links.filter(link =>
+  const filteredLinks = links.filter((link) =>
     link.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     link.url.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (link.description && link.description.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
+  const formatDate = (dateStr) =>
+    new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+  // Extract domain for display
+  const getDomain = (url) => {
+    try {
+      return new URL(url).hostname.replace('www.', '');
+    } catch {
+      return url.replace(/^https?:\/\//, '').split('/')[0];
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-900 p-3 sm:p-6 lg:p-8">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-4">
+    <div
+      style={{
+        minHeight: '100vh',
+        background: 'var(--bg-base)',
+        padding: 'clamp(20px, 4vw, 40px)',
+        fontFamily: "'Space Grotesk', sans-serif",
+      }}
+    >
+      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+
+        {/* ── Header ── */}
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 16,
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            marginBottom: 32,
+          }}
+        >
           <div>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">My Links</h1>
-            <p className="text-gray-400 text-xs sm:text-sm mt-1">
-              {filteredLinks.length} {filteredLinks.length === 1 ? 'link' : 'links'} found
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
+              <div style={{ width: 8, height: 32, background: 'var(--accent-cyan)', border: '2px solid var(--border-primary)' }} />
+              <h1
+                style={{
+                  margin: 0,
+                  fontSize: 'clamp(1.6rem, 3vw, 2.4rem)',
+                  fontWeight: 800,
+                  color: 'var(--text-primary)',
+                  letterSpacing: '-0.02em',
+                }}
+              >
+                MY LINKS
+              </h1>
+            </div>
+            <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 500, paddingLeft: 20 }}>
+              {filteredLinks.length} {filteredLinks.length === 1 ? 'link' : 'links'}
+              {searchQuery && ' found'}
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-            <div className="relative w-full sm:w-64">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-4 w-4 text-gray-400" />
-              </div>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+            {/* Search */}
+            <div style={{ position: 'relative' }}>
+              <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }}>
+                <SearchIcon />
+              </span>
               <input
                 type="text"
                 placeholder="Search links..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="block w-full pl-10 pr-3 py-2 border border-gray-700 rounded-lg leading-5 bg-gray-800 text-gray-300 placeholder-gray-400 focus:outline-none focus:bg-gray-700 focus:border-green-500 focus:ring-1 focus:ring-green-500 sm:text-sm transition duration-150 ease-in-out"
+                className="nb-input"
+                style={{ paddingLeft: 36, width: 220, fontSize: '0.875rem' }}
               />
             </div>
 
+            {/* Add button */}
             {!isAddingLink && (
               <button
                 onClick={() => setIsAddingLink(true)}
-                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg transition duration-200 font-medium w-full sm:w-auto justify-center disabled:opacity-50"
                 disabled={isLoading}
+                className="nb-btn"
+                style={{
+                  gap: 8,
+                  padding: '10px 18px',
+                  background: 'var(--accent-cyan)',
+                  color: '#000',
+                  border: '3px solid var(--border-primary)',
+                  boxShadow: '4px 4px 0px var(--border-primary)',
+                  fontWeight: 700,
+                  fontSize: '0.85rem',
+                  letterSpacing: '0.05em',
+                  cursor: 'pointer',
+                  transition: 'transform 0.1s, box-shadow 0.1s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translate(-2px,-2px)';
+                  e.currentTarget.style.boxShadow = '6px 6px 0px var(--border-primary)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translate(0,0)';
+                  e.currentTarget.style.boxShadow = '4px 4px 0px var(--border-primary)';
+                }}
               >
-                <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="text-sm sm:text-base">Add Link</span>
+                <PlusIcon />
+                ADD LINK
               </button>
             )}
           </div>
         </div>
 
-        {/* Links Grid */}
+        {/* ── Loading ── */}
         {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader className="w-8 h-8 animate-spin text-green-500" />
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 0' }}>
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                border: '3px solid var(--border-dim)',
+                borderTop: '3px solid var(--accent-cyan)',
+                borderRadius: '50%',
+                animation: 'spin 0.8s linear infinite',
+              }}
+            />
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+          <>
+            {/* ── Links Grid ── */}
             {filteredLinks.length === 0 ? (
-              <div className="col-span-full text-center py-8 sm:py-12">
-                <p className="text-gray-400 text-base sm:text-lg">
-                  {searchQuery ? 'No links found matching your search.' : 'No links yet. Add your first link!'}
+              <div style={{ border: '2px dashed var(--border-dim)', padding: '60px 24px', textAlign: 'center' }}>
+                <div style={{ fontSize: '3rem', marginBottom: 16 }}>🔗</div>
+                <p style={{ margin: '0 0 8px 0', color: 'var(--text-secondary)', fontWeight: 700, fontSize: '1.1rem' }}>
+                  {searchQuery ? 'No links found' : 'No links saved'}
                 </p>
+                <p style={{ margin: '0 0 20px 0', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                  {searchQuery ? `No results for "${searchQuery}"` : 'Save your first link to get started'}
+                </p>
+                {!searchQuery && (
+                  <button
+                    onClick={() => setIsAddingLink(true)}
+                    className="nb-btn"
+                    style={{
+                      padding: '10px 20px',
+                      background: 'var(--accent-cyan)',
+                      color: '#000',
+                      border: '3px solid var(--border-primary)',
+                      boxShadow: '4px 4px 0px var(--border-primary)',
+                      fontWeight: 700,
+                      fontSize: '0.85rem',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <PlusIcon /> SAVE LINK
+                  </button>
+                )}
               </div>
             ) : (
-              filteredLinks.map((link) => (
-                <div
-                  key={link._id}
-                  className="bg-gray-800 rounded-lg p-4 sm:p-5 border border-gray-700 hover:border-green-600 transition duration-200 group"
-                >
-                  <div className="flex justify-between items-start mb-2 sm:mb-3">
-                    <h3 className="text-base sm:text-lg font-semibold text-white flex-1 pr-2 line-clamp-2">
-                      {link.title}
-                    </h3>
-                    <div className="flex gap-1 sm:gap-2 flex-shrink-0">
-                      <button
-                        onClick={() => openLink(link.url)}
-                        className="text-green-400 hover:text-green-300 transition duration-200 p-1"
-                        title="Open link"
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                  gap: 20,
+                }}
+              >
+                {filteredLinks.map((link) => (
+                  <div
+                    key={link._id}
+                    style={{
+                      background: 'var(--bg-surface)',
+                      border: '3px solid var(--border-primary)',
+                      boxShadow: '4px 4px 0px var(--accent-cyan)',
+                      padding: '20px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 10,
+                      transition: 'transform 0.1s ease, box-shadow 0.1s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translate(-2px,-2px)';
+                      e.currentTarget.style.boxShadow = '6px 6px 0px var(--accent-cyan)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translate(0,0)';
+                      e.currentTarget.style.boxShadow = '4px 4px 0px var(--accent-cyan)';
+                    }}
+                  >
+                    {/* Card header */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+                      <h3
+                        style={{
+                          margin: 0,
+                          fontSize: '1rem',
+                          fontWeight: 700,
+                          color: 'var(--text-primary)',
+                          flex: 1,
+                          overflow: 'hidden',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          lineHeight: 1.4,
+                        }}
                       >
-                        <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(link._id)}
-                        className="text-red-400 hover:text-red-300 transition duration-200 p-1 disabled:opacity-50"
-                        title="Delete link"
-                        disabled={isDeleting}
+                        {link.title}
+                      </h3>
+                      <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                        <button
+                          onClick={() => openLink(link.url)}
+                          style={{
+                            background: 'var(--accent-cyan)',
+                            border: '2px solid var(--border-primary)',
+                            color: '#000',
+                            padding: '5px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'transform 0.1s',
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.1)'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+                          title="Open link"
+                        >
+                          <ExternalLinkIcon />
+                        </button>
+                        <button
+                          onClick={() => deleteLink(link._id)}
+                          disabled={isDeleting}
+                          style={{
+                            background: 'transparent',
+                            border: '2px solid var(--border-dim)',
+                            color: 'var(--text-muted)',
+                            padding: '5px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'border-color 0.15s, color 0.15s, background 0.15s',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'rgba(255,59,59,0.1)';
+                            e.currentTarget.style.borderColor = 'var(--accent-coral)';
+                            e.currentTarget.style.color = 'var(--accent-coral)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'transparent';
+                            e.currentTarget.style.borderColor = 'var(--border-dim)';
+                            e.currentTarget.style.color = 'var(--text-muted)';
+                          }}
+                          title="Delete link"
+                        >
+                          <TrashIcon />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* URL display */}
+                    <button
+                      onClick={() => openLink(link.url)}
+                      style={{
+                        background: 'var(--bg-elevated)',
+                        border: '1px solid var(--border-dim)',
+                        padding: '6px 10px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        width: '100%',
+                      }}
+                    >
+                      <span style={{ color: 'var(--accent-cyan)', fontSize: '0.65rem', fontWeight: 700, flexShrink: 0 }}>⬡</span>
+                      <span
+                        style={{
+                          fontSize: '0.75rem',
+                          color: 'var(--accent-cyan)',
+                          fontFamily: 'monospace',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
                       >
-                        <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
-                      </button>
+                        {getDomain(link.url)}
+                      </span>
+                    </button>
+
+                    {/* Description */}
+                    {link.description && (
+                      <p
+                        style={{
+                          margin: 0,
+                          fontSize: '0.82rem',
+                          color: 'var(--text-secondary)',
+                          lineHeight: 1.5,
+                          overflow: 'hidden',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                        }}
+                      >
+                        {link.description}
+                      </p>
+                    )}
+
+                    {/* Footer */}
+                    <div
+                      style={{
+                        borderTop: '1px solid var(--border-dim)',
+                        paddingTop: 10,
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginTop: 'auto',
+                      }}
+                    >
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.05em' }}>
+                        {formatDate(link.createdAt)}
+                      </span>
+                      <span
+                        className="nb-badge"
+                        style={{ color: 'var(--accent-cyan)', fontSize: '0.6rem', borderColor: 'var(--accent-cyan)' }}
+                      >
+                        LINK
+                      </span>
                     </div>
                   </div>
-
-                  <div
-                    onClick={() => openLink(link.url)}
-                    className="mb-2 sm:mb-3 cursor-pointer"
-                  >
-                    <p className="text-green-400 text-xs sm:text-sm font-mono line-clamp-1 hover:text-green-300 transition duration-200">
-                      {link.url.replace(/^https?:\/\//, '')}
-                    </p>
-                  </div>
-
-                  {link.description && (
-                    <p className="text-gray-300 text-xs sm:text-sm mb-2 sm:mb-3 whitespace-pre-wrap line-clamp-2">
-                      {link.description}
-                    </p>
-                  )}
-
-                  <div className="flex justify-between items-center">
-                    <p className="text-gray-500 text-xs">
-                      {new Date(link.createdAt).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
-                    </p>
-                    <span className="text-green-500 text-xs bg-green-900 bg-opacity-30 px-2 py-1 rounded-full">
-                      Link
-                    </span>
-                  </div>
-                </div>
-              ))
+                ))}
+              </div>
             )}
-          </div>
+          </>
         )}
       </div>
 
-      {/* Popup Modal for Add Form with Blur Background */}
+      {/* ── Modal (Add Link) ── */}
       {isAddingLink && (
-        <div className="fixed inset-0 backdrop-blur-sm bg-black bg-opacity-30 flex items-center justify-center p-3 sm:p-4 z-50">
-          <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-md sm:max-w-2xl mx-auto border border-gray-700 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-3 sm:mb-4">
-              <h2 className="text-lg sm:text-xl font-semibold text-white">
-                Add New Link
-              </h2>
+        <div className="nb-modal-overlay">
+          <div
+            className="nb-modal"
+            style={{ boxShadow: '8px 8px 0px var(--accent-cyan)' }}
+          >
+            {/* Modal header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+              <div>
+                <div
+                  style={{
+                    display: 'inline-block',
+                    background: 'var(--accent-cyan)',
+                    color: '#000',
+                    fontSize: '0.65rem',
+                    fontWeight: 800,
+                    letterSpacing: '0.12em',
+                    padding: '3px 8px',
+                    marginBottom: 6,
+                    border: '2px solid #000',
+                  }}
+                >
+                  NEW
+                </div>
+                <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
+                  Save Link
+                </h2>
+              </div>
               <button
                 onClick={handleCancel}
-                className="text-gray-400 hover:text-white transition duration-200 p-1 rounded-full hover:bg-gray-700"
                 disabled={isAdding}
+                style={{
+                  background: 'transparent',
+                  border: '2px solid var(--border-dim)',
+                  color: 'var(--text-muted)',
+                  padding: '6px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--border-primary)';
+                  e.currentTarget.style.color = 'var(--text-primary)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--border-dim)';
+                  e.currentTarget.style.color = 'var(--text-muted)';
+                }}
               >
-                <X className="w-5 h-5 sm:w-6 sm:h-6" />
+                <CloseIcon />
               </button>
             </div>
 
-            <div className="space-y-3 sm:space-y-4">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1 sm:mb-2">
-                  Title *
-                </label>
+                <label className="nb-label">Title *</label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="Enter link title"
-                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
+                  placeholder="Give this link a name..."
                   autoFocus
                   disabled={isAdding}
+                  className="nb-input"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1 sm:mb-2">
-                  URL *
-                </label>
+                <label className="nb-label">URL *</label>
                 <input
                   type="text"
                   value={formData.url}
                   onChange={(e) => setFormData({ ...formData, url: e.target.value })}
                   placeholder="https://example.com"
-                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
                   disabled={isAdding}
+                  className="nb-input"
                 />
-                <p className="text-gray-400 text-xs mt-1">
+                <p style={{ margin: '6px 0 0 0', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 500 }}>
                   You can enter with or without https://
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1 sm:mb-2">
-                  Description
-                </label>
+                <label className="nb-label">Description <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Enter link description (optional)"
-                  rows="3"
-                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none text-sm sm:text-base"
+                  placeholder="What is this link about?"
+                  rows={3}
                   disabled={isAdding}
-                ></textarea>
+                  className="nb-input nb-textarea"
+                />
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2">
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', paddingTop: 4 }}>
                 <button
                   onClick={handleAdd}
-                  className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 py-2.5 rounded-lg transition duration-200 font-medium text-sm sm:text-base order-2 sm:order-1 disabled:opacity-50"
                   disabled={isAdding || !formData.title.trim() || !formData.url.trim()}
+                  className="nb-btn"
+                  style={{
+                    flex: 1,
+                    minWidth: 120,
+                    padding: '12px 16px',
+                    background: 'var(--accent-cyan)',
+                    color: '#000',
+                    border: '3px solid var(--border-primary)',
+                    boxShadow: '4px 4px 0px var(--border-primary)',
+                    fontWeight: 700,
+                    letterSpacing: '0.06em',
+                    cursor: 'pointer',
+                    transition: 'transform 0.1s, box-shadow 0.1s',
+                    opacity: (isAdding || !formData.title.trim() || !formData.url.trim()) ? 0.5 : 1,
+                  }}
                 >
                   {isAdding ? (
-                    <Loader className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Save className="w-4 h-4" />
-                  )}
-                  <span>Add Link</span>
+                    <>
+                      <div style={{ width: 16, height: 16, border: '2px solid #000', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+                      SAVING...
+                    </>
+                  ) : '+ SAVE LINK'}
                 </button>
                 <button
                   onClick={handleCancel}
-                  className="flex items-center justify-center gap-2 bg-gray-700 hover:bg-gray-600 text-white px-4 sm:px-6 py-2.5 rounded-lg transition duration-200 font-medium text-sm sm:text-base order-1 sm:order-2 disabled:opacity-50"
                   disabled={isAdding}
+                  className="nb-btn nb-btn-secondary"
+                  style={{ padding: '12px 20px', letterSpacing: '0.06em' }}
                 >
-                  <X className="w-4 h-4" />
-                  <span>Cancel</span>
+                  CANCEL
                 </button>
               </div>
             </div>
@@ -263,4 +537,4 @@ export const Links = () => {
       )}
     </div>
   );
-}
+};

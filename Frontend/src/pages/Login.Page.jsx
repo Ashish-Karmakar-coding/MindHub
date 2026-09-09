@@ -1,102 +1,196 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../lib/authStore';
-import { Loader } from 'lucide-react';
 
 export const Login = () => {
   const navigate = useNavigate();
   const { Login, isLoggingIn } = useAuthStore();
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
+  const [formData, setFormData] = useState({ email: '', password: '' });
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const result = await Login(formData);
-    if (result.success) {
-      navigate('/');
-    }
+    if (result.success) navigate('/');
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4 py-8 sm:p-6">
-      <div className="max-w-md w-full">
-        <div className="bg-gray-800 rounded-lg shadow-xl p-6 sm:p-8">
-          <div className="text-center mb-6 sm:mb-8">
-            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Welcome Back</h1>
-            <p className="text-sm sm:text-base text-gray-400">Log in to your account</p>
+    <div
+      style={{
+        minHeight: '100vh',
+        background: 'var(--bg-base)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '24px 16px',
+        fontFamily: "'Space Grotesk', sans-serif",
+      }}
+    >
+      {/* Background grid pattern */}
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundImage: 'linear-gradient(var(--border-dim) 1px, transparent 1px), linear-gradient(90deg, var(--border-dim) 1px, transparent 1px)',
+          backgroundSize: '40px 40px',
+          opacity: 0.3,
+          pointerEvents: 'none',
+        }}
+      />
+
+      <div style={{ width: '100%', maxWidth: 440, position: 'relative' }}>
+        {/* Header block */}
+        <div
+          style={{
+            marginBottom: 32,
+          }}
+        >
+          {/* Logo chip */}
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '10px',
+              background: 'var(--accent-yellow)',
+              border: '3px solid var(--border-primary)',
+              padding: '6px 14px',
+              marginBottom: 24,
+              boxShadow: '4px 4px 0px var(--border-primary)',
+            }}
+          >
+            <span style={{ fontWeight: 800, fontSize: '1rem', color: '#000', letterSpacing: '0.1em' }}>MINDHUB</span>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+          <h1
+            style={{
+              fontSize: 'clamp(2rem, 5vw, 3rem)',
+              fontWeight: 800,
+              color: 'var(--text-primary)',
+              margin: '0 0 8px 0',
+              lineHeight: 1.1,
+              letterSpacing: '-0.02em',
+            }}
+          >
+            WELCOME
+            <br />
+            <span style={{ color: 'var(--accent-yellow)' }}>BACK.</span>
+          </h1>
+          <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem', fontWeight: 500 }}>
+            Sign in to your workspace
+          </p>
+        </div>
+
+        {/* Form card */}
+        <div
+          style={{
+            background: 'var(--bg-surface)',
+            border: '3px solid var(--border-primary)',
+            boxShadow: '6px 6px 0px var(--accent-yellow)',
+            padding: '32px',
+          }}
+        >
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {/* Email field */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
-                Email Address
-              </label>
+              <label className="nb-label">Email Address</label>
               <input
                 type="email"
-                id="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-3 py-2.5 sm:px-4 sm:py-3 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm sm:text-base placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="you@example.com"
                 required
                 disabled={isLoggingIn}
+                className="nb-input"
               />
             </div>
 
+            {/* Password field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
-                Password
-              </label>
+              <label className="nb-label">Password</label>
               <input
                 type="password"
-                id="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full px-3 py-2.5 sm:px-4 sm:py-3 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm sm:text-base placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="••••••••"
                 required
                 disabled={isLoggingIn}
+                className="nb-input"
               />
             </div>
 
-            
+            {/* Submit button */}
             <button
               type="submit"
               disabled={isLoggingIn || !formData.email || !formData.password}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 sm:py-3 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="nb-btn nb-btn-primary"
+              style={{
+                width: '100%',
+                padding: '14px 20px',
+                fontSize: '1rem',
+                letterSpacing: '0.08em',
+                marginTop: '4px',
+              }}
             >
               {isLoggingIn ? (
                 <>
-                  <Loader className="w-4 h-4 animate-spin" />
-                  <span>Logging in...</span>
+                  <div
+                    style={{
+                      width: 18,
+                      height: 18,
+                      border: '2px solid #000',
+                      borderTop: '2px solid transparent',
+                      borderRadius: '50%',
+                      animation: 'spin 0.8s linear infinite',
+                    }}
+                  />
+                  <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                  SIGNING IN...
                 </>
               ) : (
-                'Log In'
+                '→ LOG IN'
               )}
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-gray-400 text-sm">
-              Don't have an account?{' '}
-              <Link to="/signup" className="text-blue-500 hover:text-blue-400 font-medium">
-                Sign up
-              </Link>
-            </p>
-          </div>
+          {/* Divider */}
+          <hr className="nb-divider" style={{ marginTop: 24 }} />
+
+          <p style={{ textAlign: 'center', margin: 0, color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 500 }}>
+            No account?{' '}
+            <Link
+              to="/signup"
+              style={{
+                color: 'var(--accent-yellow)',
+                fontWeight: 700,
+                textDecoration: 'none',
+                borderBottom: '2px solid var(--accent-yellow)',
+              }}
+            >
+              Sign up →
+            </Link>
+          </p>
         </div>
+
+        {/* Decorative offset block */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: -12,
+            right: -12,
+            width: '100%',
+            height: '100%',
+            border: '3px solid var(--border-dim)',
+            zIndex: -1,
+            maxWidth: 440,
+            pointerEvents: 'none',
+          }}
+        />
       </div>
     </div>
   );
-}
+};
