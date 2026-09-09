@@ -27,7 +27,12 @@ const createFolder = async (req, res) => {
     });
 
     await newFolder.save();
-    await redis.del(`folders:${userId}`);
+
+    try {
+      await redis.del(`folders:${userId}`);
+    } catch (cacheErr) {
+      console.error('Redis DEL Error:', cacheErr.message);
+    }
 
     return res.status(201).json({ message: "Folder created successfully", folder: newFolder });
   } catch (error) {
@@ -44,8 +49,12 @@ const deleteFolder = async (req, res) => {
       return res.status(404).json({ message: "Folder not found" });
     }
 
-    await redis.del(`folders:${userId}`);
-    await redis.del(`folder_files:${folderId}`);
+    try {
+      await redis.del(`folders:${userId}`);
+      await redis.del(`folder_files:${folderId}`);
+    } catch (cacheErr) {
+      console.error('Redis DEL Error:', cacheErr.message);
+    }
 
     return res.status(200).json({ message: "Folder deleted successfully" });
   } catch (error) {
@@ -58,7 +67,13 @@ const getAllFolders = async (req, res) => {
     const userId = req.user._id;
     const cacheKey = `folders:${userId}`;
 
-    const cached = await redis.get(cacheKey);
+    let cached = null;
+    try {
+      cached = await redis.get(cacheKey);
+    } catch (cacheErr) {
+      console.error('Redis GET Error:', cacheErr.message);
+    }
+
     if (cached) {
       return res.status(200).json(cached);
     }
@@ -67,7 +82,12 @@ const getAllFolders = async (req, res) => {
       createdAt: -1,
     });
 
-    await redis.set(cacheKey, folders, { ex: 300 });
+    try {
+      await redis.set(cacheKey, folders, { ex: 300 });
+    } catch (cacheErr) {
+      console.error('Redis SET Error:', cacheErr.message);
+    }
+
     res.status(200).json(folders);
   } catch (error) {
     return res.status(500).json({ message: "Server Error", error: error.message });
@@ -79,7 +99,13 @@ const getAllFileInFolder = async (req, res) => {
     const { folderId } = req.params;
     const cacheKey = `folder_files:${folderId}`;
 
-    const cached = await redis.get(cacheKey);
+    let cached = null;
+    try {
+      cached = await redis.get(cacheKey);
+    } catch (cacheErr) {
+      console.error('Redis GET Error:', cacheErr.message);
+    }
+
     if (cached) {
       return res.status(200).json(cached);
     }
@@ -96,7 +122,12 @@ const getAllFileInFolder = async (req, res) => {
       files: folder.files,
     };
 
-    await redis.set(cacheKey, result, { ex: 300 });
+    try {
+      await redis.set(cacheKey, result, { ex: 300 });
+    } catch (cacheErr) {
+      console.error('Redis SET Error:', cacheErr.message);
+    }
+
     return res.status(200).json(result);
   } catch (error) {
     return res.status(500).json({ message: "Server Error", error: error.message });
@@ -130,8 +161,12 @@ const addFileToFolder = async (req, res) => {
       return res.status(404).json({ message: "Folder not found" });
     }
 
-    await redis.del(`folders:${userId}`);
-    await redis.del(`folder_files:${folderId}`);
+    try {
+      await redis.del(`folders:${userId}`);
+      await redis.del(`folder_files:${folderId}`);
+    } catch (cacheErr) {
+      console.error('Redis DEL Error:', cacheErr.message);
+    }
 
     res.json({ message: "File added to folder", folder });
   } catch (error) {
@@ -154,8 +189,12 @@ const removeFileFromFolder = async (req, res) => {
       return res.status(404).json({ message: "Folder not found" });
     }
 
-    await redis.del(`folders:${userId}`);
-    await redis.del(`folder_files:${folderId}`);
+    try {
+      await redis.del(`folders:${userId}`);
+      await redis.del(`folder_files:${folderId}`);
+    } catch (cacheErr) {
+      console.error('Redis DEL Error:', cacheErr.message);
+    }
 
     res.json({ message: "File removed from folder", folder });
   } catch (error) {

@@ -17,7 +17,12 @@ const addNotes = async (req, res) => {
         });
 
         await newNote.save();
-        await redis.del(`notes:${userId}`);
+        
+        try {
+            await redis.del(`notes:${userId}`);
+        } catch (cacheErr) {
+            console.error('Redis DEL Error:', cacheErr.message);
+        }
 
         return res.status(201).json({ message: 'Note created successfully', note: newNote });
     } catch (error) {
@@ -31,14 +36,25 @@ const getNotes = async (req, res) => {
     const cacheKey = `notes:${userId}`;
 
     try {
-        const cached = await redis.get(cacheKey);
+        let cached = null;
+        try {
+            cached = await redis.get(cacheKey);
+        } catch (cacheErr) {
+            console.error('Redis GET Error:', cacheErr.message);
+        }
+
         if (cached) {
             return res.status(200).json(cached);
         }
 
         const notes = await Note.find({ user_id: userId }).sort({ createdAt: -1 });
 
-        await redis.set(cacheKey, notes, { ex: 300 });
+        try {
+            await redis.set(cacheKey, notes, { ex: 300 });
+        } catch (cacheErr) {
+            console.error('Redis SET Error:', cacheErr.message);
+        }
+
         res.status(200).json(notes);
     } catch (error) {
         return res.status(500).json({ message: error.message });
@@ -53,7 +69,12 @@ const deleteNote = async (req, res) => {
         const deletedNote = await Note.findByIdAndDelete(noteId);
         if (!deletedNote) return res.status(404).json({ message: 'Note not found' });
 
-        await redis.del(`notes:${userId}`);
+        try {
+            await redis.del(`notes:${userId}`);
+        } catch (cacheErr) {
+            console.error('Redis DEL Error:', cacheErr.message);
+        }
+
         return res.status(200).json({ message: 'Note deleted successfully' });
     } catch (error) {
         return res.status(500).json({ message: error.message });
@@ -74,7 +95,12 @@ const editNote = async (req, res) => {
 
         if (!updatedNote) return res.status(404).json({ message: 'Note not found' });
 
-        await redis.del(`notes:${userId}`);
+        try {
+            await redis.del(`notes:${userId}`);
+        } catch (cacheErr) {
+            console.error('Redis DEL Error:', cacheErr.message);
+        }
+
         return res.status(200).json({ message: 'Note updated successfully', note: updatedNote });
     } catch (error) {
         return res.status(500).json({ message: error.message });

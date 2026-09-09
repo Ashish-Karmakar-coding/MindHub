@@ -22,7 +22,12 @@ const addLink = async (req, res) => {
             description: description
         });
         await newLink.save();
-        await redis.del(`links:${userId}`);
+
+        try {
+            await redis.del(`links:${userId}`);
+        } catch (cacheErr) {
+            console.error('Redis DEL Error:', cacheErr.message);
+        }
 
         return res.status(201).json({ message: 'Link added successfully', link: newLink });
     } catch (error) {
@@ -36,14 +41,27 @@ const getLinks = async (req, res) => {
     const cacheKey = `links:${userId}`;
 
     try {
-        const cached = await redis.get(cacheKey);
+        let cached = null;
+        try {
+            cached = await redis.get(cacheKey);
+        } catch (cacheErr) {
+            console.error('Redis GET Error:', cacheErr.message);
+        }
+
         if (cached) {
-            return res.status(200).json(JSON.parse(cached));
+            // Depending on how @upstash/redis is configured, cached might already be parsed
+            const parsedCache = typeof cached === 'string' ? JSON.parse(cached) : cached;
+            return res.status(200).json(parsedCache);
         }
 
         const links = await Link.find({ user_id: userId }).sort({ createdAt: -1 });
 
-        await redis.set(cacheKey, JSON.stringify(links), { ex: 300 });
+        try {
+            await redis.set(cacheKey, JSON.stringify(links), { ex: 300 });
+        } catch (cacheErr) {
+            console.error('Redis SET Error:', cacheErr.message);
+        }
+        
         res.status(200).json(links);
     } catch (error) {
         console.error('Error fetching links:', error);
@@ -67,7 +85,12 @@ const deleteLink = async (req, res) => {
         }
 
         await Link.findByIdAndDelete(linkId);
-        await redis.del(`links:${userId}`);
+        
+        try {
+            await redis.del(`links:${userId}`);
+        } catch (cacheErr) {
+            console.error('Redis DEL Error:', cacheErr.message);
+        }
 
         return res.status(200).json({ message: 'Link deleted successfully' });
     } catch (error) {
