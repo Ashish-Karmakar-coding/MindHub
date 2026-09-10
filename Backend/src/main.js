@@ -15,12 +15,13 @@ const app = express();
 
 const allowedOrigins = [
   'http://localhost:5173',
-  process.env.FRONTEND_URL,
+  process.env.FRONTEND_URL ? process.env.FRONTEND_URL.replace(/\/$/, '') : null,
 ].filter(Boolean);
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    const cleanOrigin = origin ? origin.replace(/\/$/, '') : origin;
+    if (!cleanOrigin || allowedOrigins.includes(cleanOrigin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
