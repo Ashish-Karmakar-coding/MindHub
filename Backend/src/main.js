@@ -8,6 +8,8 @@ import linksRouter from './routes/links.router.js';
 import notesRouter from './routes/notes.router.js';
 import fileRouter from './routes/files.router.js';
 import folderRouter from './routes/folder.router.js';
+import noteFoldersRouter from './routes/noteFolders.router.js';
+import linkFoldersRouter from './routes/linkFolders.router.js';
 
 dotenv.config();
 
@@ -49,6 +51,8 @@ app.use('/api/Links', linksRouter);
 app.use('/api/notes', notesRouter);
 app.use('/api/files', fileRouter);
 app.use('/api/folders', folderRouter);
+app.use('/api/note-folders', noteFoldersRouter);
+app.use('/api/link-folders', linkFoldersRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {

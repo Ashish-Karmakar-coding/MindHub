@@ -2,7 +2,7 @@ import { Link } from '../models/links.model.js';
 import { redis } from '../utils/redis.util.js';
 
 const addLink = async (req, res) => {
-    const { title, url, description } = req.body;
+    const { title, url, description, folder_id } = req.body;
     const userId = req.user._id;
 
     if (!url || !title) {
@@ -19,12 +19,14 @@ const addLink = async (req, res) => {
             user_id: userId,
             url: url,
             title: title,
-            description: description
+            description: description,
+            folder_id: folder_id || null,
         });
         await newLink.save();
 
         try {
             await redis.del(`links:${userId}`);
+            if (folder_id) await redis.del(`link-folders:${userId}`);
         } catch (cacheErr) {
             console.error('Redis DEL Error:', cacheErr.message);
         }
@@ -49,7 +51,6 @@ const getLinks = async (req, res) => {
         }
 
         if (cached) {
-            // Depending on how @upstash/redis is configured, cached might already be parsed
             const parsedCache = typeof cached === 'string' ? JSON.parse(cached) : cached;
             return res.status(200).json(parsedCache);
         }
@@ -61,7 +62,7 @@ const getLinks = async (req, res) => {
         } catch (cacheErr) {
             console.error('Redis SET Error:', cacheErr.message);
         }
-        
+
         res.status(200).json(links);
     } catch (error) {
         console.error('Error fetching links:', error);
@@ -85,9 +86,10 @@ const deleteLink = async (req, res) => {
         }
 
         await Link.findByIdAndDelete(linkId);
-        
+
         try {
             await redis.del(`links:${userId}`);
+            if (link.folder_id) await redis.del(`link-folders:${userId}`);
         } catch (cacheErr) {
             console.error('Redis DEL Error:', cacheErr.message);
         }

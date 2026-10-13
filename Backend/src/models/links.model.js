@@ -1,23 +1,27 @@
 import mongoose from 'mongoose';
-import { User } from './user.model.js';
 
 const linkSchema = new mongoose.Schema({
-    user_id:{
+    user_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
     },
-    url:{
+    url: {
         type: String,
         required: true
     },
-    title:{
+    title: {
         type: String,
-        required:true
+        required: true
     },
-    description:{
-        type:String,
-    }
-}, { timestamps: true })
+    description: {
+        type: String,
+    },
+    folder_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'LinkFolder',
+        default: null,
+    },
+}, { timestamps: true });
 
 export const Link = mongoose.model('Link', linkSchema);

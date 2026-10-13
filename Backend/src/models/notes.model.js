@@ -1,17 +1,22 @@
 import mongoose from 'mongoose';
 
 const noteSchema = new mongoose.Schema({
-    user_id:{
+    user_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User", // Changed from "Profile" to "User"
+        ref: 'User',
         required: true
     },
-    title:{
+    title: {
         type: String,
         required: true
     },
-    content:{
+    content: {
         type: String,
+    },
+    folder_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'NoteFolder',
+        default: null,
     },
 }, { timestamps: true });
 

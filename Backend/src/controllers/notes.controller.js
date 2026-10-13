@@ -2,7 +2,7 @@ import { Note } from '../models/notes.model.js';
 import { redis } from '../utils/redis.util.js';
 
 const addNotes = async (req, res) => {
-    const { title, content } = req.body;
+    const { title, content, folder_id } = req.body;
     const userId = req.user._id;
 
     if (!title) {
@@ -13,13 +13,15 @@ const addNotes = async (req, res) => {
         const newNote = new Note({
             user_id: userId,
             title,
-            content
+            content,
+            folder_id: folder_id || null,
         });
 
         await newNote.save();
-        
+
         try {
             await redis.del(`notes:${userId}`);
+            if (folder_id) await redis.del(`note-folders:${userId}`);
         } catch (cacheErr) {
             console.error('Redis DEL Error:', cacheErr.message);
         }
@@ -71,6 +73,7 @@ const deleteNote = async (req, res) => {
 
         try {
             await redis.del(`notes:${userId}`);
+            if (deletedNote.folder_id) await redis.del(`note-folders:${userId}`);
         } catch (cacheErr) {
             console.error('Redis DEL Error:', cacheErr.message);
         }
@@ -83,13 +86,16 @@ const deleteNote = async (req, res) => {
 
 const editNote = async (req, res) => {
     const { id: noteId } = req.params;
-    const { title, content } = req.body;
+    const { title, content, folder_id } = req.body;
     const userId = req.user._id;
 
     try {
+        const updateData = { title, content };
+        if (folder_id !== undefined) updateData.folder_id = folder_id || null;
+
         const updatedNote = await Note.findByIdAndUpdate(
             noteId,
-            { title, content },
+            updateData,
             { new: true }
         );
 
@@ -97,6 +103,7 @@ const editNote = async (req, res) => {
 
         try {
             await redis.del(`notes:${userId}`);
+            await redis.del(`note-folders:${userId}`);
         } catch (cacheErr) {
             console.error('Redis DEL Error:', cacheErr.message);
         }

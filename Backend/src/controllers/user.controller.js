@@ -26,12 +26,13 @@ const signup = async (req, res) => {
     });
 
     // Generate token before saving
-    generateToken(newUser._id, res);
+    const token = generateToken(newUser._id, res);
     
     await newUser.save();
 
     return res.status(201).json({
       message: "User created successfully",
+      token,
       user: {
         _id: newUser._id,
         name: newUser.name,
@@ -69,10 +70,11 @@ const login = async (req, res) => {
       return res.status(400).json({ message: "Invalid password" });
     }
 
-    generateToken(user._id, res);
+    const token = generateToken(user._id, res);
 
     return res.status(200).json({
       message: "Login successful",
+      token,
       user: {
         _id: user._id,
         name: user.name,
