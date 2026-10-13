@@ -90,11 +90,13 @@ const editNote = async (req, res) => {
     const userId = req.user._id;
 
     try {
-        const updateData = { title, content };
+        const updateData = {};
+        if (title !== undefined) updateData.title = title;
+        if (content !== undefined) updateData.content = content;
         if (folder_id !== undefined) updateData.folder_id = folder_id || null;
 
-        const updatedNote = await Note.findByIdAndUpdate(
-            noteId,
+        const updatedNote = await Note.findOneAndUpdate(
+            { _id: noteId, user_id: userId },
             updateData,
             { new: true }
         );

@@ -104,4 +104,47 @@ const deleteLink = async (req, res) => {
     }
 };
 
-export { addLink, getLinks, deleteLink };
+const editLink = async (req, res) => {
+    const { linkId } = req.params;
+    const { title, url, description, folder_id } = req.body;
+    const userId = req.user._id;
+
+    if (!linkId) {
+        return res.status(400).json({ message: 'Bad Request: Link ID is required' });
+    }
+
+    try {
+        const updateData = {};
+        if (title !== undefined) updateData.title = title;
+        if (url !== undefined) updateData.url = url;
+        if (description !== undefined) updateData.description = description;
+        if (folder_id !== undefined) updateData.folder_id = folder_id || null;
+
+        const updatedLink = await Link.findOneAndUpdate(
+            { _id: linkId, user_id: userId },
+            updateData,
+            { new: true }
+        );
+
+        if (!updatedLink) {
+            return res.status(404).json({ message: 'Link not found or access denied' });
+        }
+
+        try {
+            await redis.del(`links:${userId}`);
+            await redis.del(`link-folders:${userId}`);
+        } catch (cacheErr) {
+            console.error('Redis DEL Error:', cacheErr.message);
+        }
+
+        return res.status(200).json({ message: 'Link updated successfully', link: updatedLink });
+    } catch (error) {
+        console.error('Error updating link:', error);
+        if (error.name === 'CastError') {
+            return res.status(400).json({ message: 'Invalid link ID format' });
+        }
+        return res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
+
+export { addLink, getLinks, deleteLink, editLink };

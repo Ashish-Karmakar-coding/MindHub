@@ -9,6 +9,12 @@ const TrashIcon = () => (<svg width="15" height="15" viewBox="0 0 24 24" fill="n
 const SearchIcon = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>);
 const CloseIcon = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>);
 const FolderIcon = () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>);
+const FolderMoveIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square">
+    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+    <path d="M12 11l3 3m0 0l-3 3m3-3H9" />
+  </svg>
+);
 const BackIcon = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12,19 5,12 12,5" /></svg>);
 const SpinnerStyle = () => (<style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>);
 
@@ -27,13 +33,14 @@ const getDomain = (url) => {
 };
 
 export const Links = () => {
-  const { links, isLoading, isAdding, isDeleting, fetchLinks, addLink, deleteLink } = useLinksStore();
+  const { links, isLoading, isAdding, isUpdating, isDeleting, fetchLinks, addLink, updateLink, deleteLink } = useLinksStore();
   const { linkFolders, isLoadingFolders, isCreatingFolder, fetchLinkFolders, createLinkFolder, deleteLinkFolder } = useLinkFoldersStore();
 
   const [view, setView] = useState('main');
   const [selectedFolder, setSelectedFolder] = useState(null);
 
   const [isAddingLink, setIsAddingLink] = useState(false);
+  const [movingLink, setMovingLink] = useState(null);
   const [formData, setFormData] = useState({ title: '', url: '', description: '', folder_id: '' });
 
   const [showNewFolderInput, setShowNewFolderInput] = useState(false);
@@ -72,6 +79,20 @@ export const Links = () => {
   const handleCancel = () => { setIsAddingLink(false); setFormData({ title: '', url: '', description: '', folder_id: '' }); setShowNewFolderInput(false); setInlineFolderName(''); };
 
   const handleDeleteLink = async (linkId) => { await deleteLink(linkId); await fetchLinkFolders(); };
+
+  const handleConfirmMove = async (targetFolderId) => {
+    if (!movingLink) return;
+    const currentFId = folderId(movingLink);
+    if (String(currentFId || '') === String(targetFolderId || '')) {
+      setMovingLink(null);
+      return;
+    }
+    const result = await updateLink(movingLink._id, { folder_id: targetFolderId || null });
+    if (result.success) {
+      setMovingLink(null);
+      await fetchLinkFolders();
+    }
+  };
 
   const handleCreateInlineFolder = async () => {
     if (!inlineFolderName.trim()) return;
@@ -119,26 +140,39 @@ export const Links = () => {
   );
 
   /* ── Link Card ── */
-  const LinkCard = ({ link }) => (
-    <div style={{ background: 'var(--bg-surface)', border: '3px solid var(--border-primary)', boxShadow: '4px 4px 0px var(--accent-cyan)', padding: '20px', display: 'flex', flexDirection: 'column', gap: 10, transition: 'transform 0.1s ease, box-shadow 0.1s ease' }} {...btnHover('var(--accent-cyan)')}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
-        <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)', flex: 1, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.4 }}>{link.title}</h3>
-        <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-          <button onClick={() => openLink(link.url)} style={{ background: 'var(--accent-cyan)', border: '2px solid var(--border-primary)', color: '#000', padding: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', transition: 'transform 0.1s' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.1)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }} title="Open link"><ExternalLinkIcon /></button>
-          <button onClick={() => handleDeleteLink(link._id)} disabled={isDeleting} style={{ background: 'transparent', border: '2px solid var(--border-dim)', color: 'var(--text-muted)', padding: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', transition: 'border-color 0.15s, color 0.15s, background 0.15s' }} onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,59,59,0.1)'; e.currentTarget.style.borderColor = 'var(--accent-coral)'; e.currentTarget.style.color = 'var(--accent-coral)'; }} onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--border-dim)'; e.currentTarget.style.color = 'var(--text-muted)'; }} title="Delete link"><TrashIcon /></button>
+  const LinkCard = ({ link }) => {
+    const currentFId = folderId(link);
+    const folderObj = currentFId ? linkFolders.find((f) => String(f._id) === String(currentFId)) : null;
+
+    return (
+      <div style={{ background: 'var(--bg-surface)', border: '3px solid var(--border-primary)', boxShadow: '4px 4px 0px var(--accent-cyan)', padding: '20px', display: 'flex', flexDirection: 'column', gap: 10, transition: 'transform 0.1s ease, box-shadow 0.1s ease' }} {...btnHover('var(--accent-cyan)')}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+          <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)', flex: 1, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.4 }}>{link.title}</h3>
+          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+            <button onClick={() => setMovingLink(link)} disabled={isUpdating || isDeleting} style={{ background: 'transparent', border: '2px solid var(--border-dim)', color: 'var(--text-muted)', padding: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', transition: 'border-color 0.15s, color 0.15s' }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent-cyan)'; e.currentTarget.style.color = 'var(--accent-cyan)'; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-dim)'; e.currentTarget.style.color = 'var(--text-muted)'; }} title="Move to folder"><FolderMoveIcon /></button>
+            <button onClick={() => openLink(link.url)} style={{ background: 'var(--accent-cyan)', border: '2px solid var(--border-primary)', color: '#000', padding: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', transition: 'transform 0.1s' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.1)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }} title="Open link"><ExternalLinkIcon /></button>
+            <button onClick={() => handleDeleteLink(link._id)} disabled={isDeleting} style={{ background: 'transparent', border: '2px solid var(--border-dim)', color: 'var(--text-muted)', padding: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', transition: 'border-color 0.15s, color 0.15s, background 0.15s' }} onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,59,59,0.1)'; e.currentTarget.style.borderColor = 'var(--accent-coral)'; e.currentTarget.style.color = 'var(--accent-coral)'; }} onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--border-dim)'; e.currentTarget.style.color = 'var(--text-muted)'; }} title="Delete link"><TrashIcon /></button>
+          </div>
+        </div>
+        <button onClick={() => openLink(link.url)} style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-dim)', padding: '6px 10px', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', textAlign: 'left', width: '100%' }}>
+          <span style={{ color: 'var(--accent-cyan)', fontSize: '0.65rem', fontWeight: 700, flexShrink: 0 }}>⬡</span>
+          <span style={{ fontSize: '0.75rem', color: 'var(--accent-cyan)', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{getDomain(link.url)}</span>
+        </button>
+        {link.description && (<p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{link.description}</p>)}
+        <div style={{ borderTop: '1px solid var(--border-dim)', paddingTop: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
+          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.05em' }}>{formatDate(link.createdAt)}</span>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            {folderObj && (
+              <span className="nb-badge" style={{ color: 'var(--accent-cyan)', fontSize: '0.6rem', borderColor: 'var(--accent-cyan)' }}>
+                📁 {folderObj.name}
+              </span>
+            )}
+            <span className="nb-badge" style={{ color: 'var(--accent-cyan)', fontSize: '0.6rem', borderColor: 'var(--accent-cyan)' }}>LINK</span>
+          </div>
         </div>
       </div>
-      <button onClick={() => openLink(link.url)} style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-dim)', padding: '6px 10px', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', textAlign: 'left', width: '100%' }}>
-        <span style={{ color: 'var(--accent-cyan)', fontSize: '0.65rem', fontWeight: 700, flexShrink: 0 }}>⬡</span>
-        <span style={{ fontSize: '0.75rem', color: 'var(--accent-cyan)', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{getDomain(link.url)}</span>
-      </button>
-      {link.description && (<p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{link.description}</p>)}
-      <div style={{ borderTop: '1px solid var(--border-dim)', paddingTop: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
-        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.05em' }}>{formatDate(link.createdAt)}</span>
-        <span className="nb-badge" style={{ color: 'var(--accent-cyan)', fontSize: '0.6rem', borderColor: 'var(--accent-cyan)' }}>LINK</span>
-      </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-base)', padding: 'clamp(20px, 4vw, 40px)', fontFamily: "'Space Grotesk', sans-serif" }}>
@@ -190,7 +224,7 @@ export const Links = () => {
             {/* ── Folders section (main view only) ── */}
             {view === 'main' && (
               <div style={{ marginBottom: 36 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                <div style={{ display: 'center', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <div style={{ width: 4, height: 18, background: 'var(--accent-cyan)' }} />
                     <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Folders</span>
@@ -265,7 +299,110 @@ export const Links = () => {
         )}
       </div>
 
-      {/* ── Modal ── */}
+      {/* ── Move to Folder Modal ── */}
+      {movingLink && (
+        <div className="nb-modal-overlay">
+          <div className="nb-modal" style={{ maxWidth: 440, boxShadow: '8px 8px 0px var(--accent-cyan)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <div>
+                <div style={{ display: 'inline-block', background: 'var(--accent-cyan)', color: '#000', fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.12em', padding: '3px 8px', marginBottom: 6, border: '2px solid #000' }}>
+                  MOVE
+                </div>
+                <h2 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
+                  Move to Folder
+                </h2>
+              </div>
+              <button onClick={() => setMovingLink(null)} style={{ background: 'transparent', border: '2px solid var(--border-dim)', color: 'var(--text-muted)', padding: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--border-primary)'; e.currentTarget.style.color = 'var(--text-primary)'; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-dim)'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
+                <CloseIcon />
+              </button>
+            </div>
+
+            <p style={{ margin: '0 0 16px 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              Select destination folder for <strong style={{ color: 'var(--text-primary)' }}>"{movingLink.title}"</strong>:
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 280, overflowY: 'auto', marginBottom: 20, paddingRight: 4 }}>
+              {/* Option for Ungrouped */}
+              <button
+                onClick={() => handleConfirmMove(null)}
+                disabled={isUpdating}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '12px 14px',
+                  background: !folderId(movingLink) ? 'rgba(0, 245, 255, 0.12)' : 'var(--bg-surface)',
+                  border: !folderId(movingLink) ? '2px solid var(--accent-cyan)' : '2px solid var(--border-dim)',
+                  color: 'var(--text-primary)',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  fontWeight: 700,
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent-cyan)'; }}
+                onMouseLeave={(e) => { if (folderId(movingLink)) e.currentTarget.style.borderColor = 'var(--border-dim)'; }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span>🌐</span>
+                  <span>None (Ungrouped)</span>
+                </div>
+                {!folderId(movingLink) && (
+                  <span style={{ fontSize: '0.7rem', color: 'var(--accent-cyan)', fontWeight: 800 }}>CURRENT</span>
+                )}
+              </button>
+
+              {/* Existing folders */}
+              {linkFolders.map((folder) => {
+                const isCurrent = String(folderId(movingLink)) === String(folder._id);
+                return (
+                  <button
+                    key={folder._id}
+                    onClick={() => handleConfirmMove(folder._id)}
+                    disabled={isUpdating}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '12px 14px',
+                      background: isCurrent ? 'rgba(0, 245, 255, 0.12)' : 'var(--bg-surface)',
+                      border: isCurrent ? '2px solid var(--accent-cyan)' : '2px solid var(--border-dim)',
+                      color: 'var(--text-primary)',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      fontFamily: "'Space Grotesk', sans-serif",
+                      fontWeight: 700,
+                      transition: 'all 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent-cyan)'; }}
+                    onMouseLeave={(e) => { if (!isCurrent) e.currentTarget.style.borderColor = 'var(--border-dim)'; }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ color: 'var(--accent-cyan)' }}><FolderIcon /></span>
+                      <span>{folder.name}</span>
+                    </div>
+                    {isCurrent && (
+                      <span style={{ fontSize: '0.7rem', color: 'var(--accent-cyan)', fontWeight: 800 }}>CURRENT</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+              <button
+                onClick={() => setMovingLink(null)}
+                className="nb-btn nb-btn-secondary"
+                style={{ padding: '10px 18px' }}
+              >
+                CANCEL
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Save Link Modal ── */}
       {isAddingLink && (
         <div className="nb-modal-overlay">
           <div className="nb-modal" style={{ boxShadow: '8px 8px 0px var(--accent-cyan)' }}>

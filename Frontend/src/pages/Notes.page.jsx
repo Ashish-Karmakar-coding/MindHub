@@ -9,6 +9,12 @@ const TrashIcon = () => (<svg width="15" height="15" viewBox="0 0 24 24" fill="n
 const SearchIcon = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>);
 const CloseIcon = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>);
 const FolderIcon = () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>);
+const FolderMoveIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square">
+    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+    <path d="M12 11l3 3m0 0l-3 3m3-3H9" />
+  </svg>
+);
 const BackIcon = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12,19 5,12 12,5" /></svg>);
 const SpinnerStyle = () => (<style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>);
 
@@ -40,6 +46,7 @@ export const Notes = () => {
   // Modal state
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [editingNote, setEditingNote] = useState(null);
+  const [movingNote, setMovingNote] = useState(null);
   const [formData, setFormData] = useState({ title: '', content: '', folder_id: '' });
 
   // Folder creation in modal
@@ -110,6 +117,20 @@ export const Notes = () => {
     await fetchNoteFolders();
   };
 
+  const handleConfirmMove = async (targetFolderId) => {
+    if (!movingNote) return;
+    const currentFId = folderId(movingNote);
+    if (String(currentFId || '') === String(targetFolderId || '')) {
+      setMovingNote(null);
+      return;
+    }
+    const result = await updateNote(movingNote._id, { folder_id: targetFolderId || null });
+    if (result.success) {
+      setMovingNote(null);
+      await fetchNoteFolders();
+    }
+  };
+
   const handleCreateInlineFolder = async () => {
     if (!inlineFolderName.trim()) return;
     const result = await createNoteFolder(inlineFolderName.trim());
@@ -140,25 +161,38 @@ export const Notes = () => {
   const isModal = isAddingNote || !!editingNote;
 
   /* ── Card renderer ── */
-  const NoteCard = ({ note }) => (
-    <div
-      style={{ background: 'var(--bg-surface)', border: '3px solid var(--border-primary)', boxShadow: '4px 4px 0px var(--accent-yellow)', padding: '20px', display: 'flex', flexDirection: 'column', gap: 12, transition: 'transform 0.1s ease, box-shadow 0.1s ease' }}
-      {...btnHover('var(--accent-yellow)')}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
-        <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)', flex: 1, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.4 }}>{note.title}</h3>
-        <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-          <button onClick={() => handleEdit(note)} disabled={isUpdating || isDeleting} style={{ background: 'transparent', border: '2px solid var(--border-dim)', color: 'var(--text-muted)', padding: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', transition: 'border-color 0.15s, color 0.15s' }} {...iconBtnHover('var(--accent-yellow)', 'var(--accent-yellow)')} title="Edit note"><EditIcon /></button>
-          <button onClick={() => handleDeleteNote(note._id)} disabled={isDeleting} style={{ background: 'transparent', border: '2px solid var(--border-dim)', color: 'var(--text-muted)', padding: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', transition: 'border-color 0.15s, color 0.15s, background 0.15s' }} onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,59,59,0.1)'; e.currentTarget.style.borderColor = 'var(--accent-coral)'; e.currentTarget.style.color = 'var(--accent-coral)'; }} onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--border-dim)'; e.currentTarget.style.color = 'var(--text-muted)'; }} title="Delete note"><TrashIcon /></button>
+  const NoteCard = ({ note }) => {
+    const currentFId = folderId(note);
+    const folderObj = currentFId ? noteFolders.find((f) => String(f._id) === String(currentFId)) : null;
+
+    return (
+      <div
+        style={{ background: 'var(--bg-surface)', border: '3px solid var(--border-primary)', boxShadow: '4px 4px 0px var(--accent-yellow)', padding: '20px', display: 'flex', flexDirection: 'column', gap: 12, transition: 'transform 0.1s ease, box-shadow 0.1s ease' }}
+        {...btnHover('var(--accent-yellow)')}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+          <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)', flex: 1, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.4 }}>{note.title}</h3>
+          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+            <button onClick={() => setMovingNote(note)} disabled={isUpdating || isDeleting} style={{ background: 'transparent', border: '2px solid var(--border-dim)', color: 'var(--text-muted)', padding: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', transition: 'border-color 0.15s, color 0.15s' }} {...iconBtnHover('var(--accent-yellow)', 'var(--accent-yellow)')} title="Move to folder"><FolderMoveIcon /></button>
+            <button onClick={() => handleEdit(note)} disabled={isUpdating || isDeleting} style={{ background: 'transparent', border: '2px solid var(--border-dim)', color: 'var(--text-muted)', padding: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', transition: 'border-color 0.15s, color 0.15s' }} {...iconBtnHover('var(--accent-yellow)', 'var(--accent-yellow)')} title="Edit note"><EditIcon /></button>
+            <button onClick={() => handleDeleteNote(note._id)} disabled={isDeleting} style={{ background: 'transparent', border: '2px solid var(--border-dim)', color: 'var(--text-muted)', padding: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', transition: 'border-color 0.15s, color 0.15s, background 0.15s' }} onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,59,59,0.1)'; e.currentTarget.style.borderColor = 'var(--accent-coral)'; e.currentTarget.style.color = 'var(--accent-coral)'; }} onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--border-dim)'; e.currentTarget.style.color = 'var(--text-muted)'; }} title="Delete note"><TrashIcon /></button>
+          </div>
+        </div>
+        {note.content && (<p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.6, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', flex: 1 }}>{note.content}</p>)}
+        <div style={{ borderTop: '1px solid var(--border-dim)', paddingTop: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.05em' }}>{formatDate(note.createdAt)}</span>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            {folderObj && (
+              <span className="nb-badge" style={{ color: 'var(--accent-yellow)', fontSize: '0.6rem', borderColor: 'var(--accent-yellow)' }}>
+                📁 {folderObj.name}
+              </span>
+            )}
+            <span className="nb-badge" style={{ color: 'var(--text-primary)', fontSize: '0.6rem', borderColor: 'var(--border-dim)' }}>NOTE</span>
+          </div>
         </div>
       </div>
-      {note.content && (<p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.6, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', flex: 1 }}>{note.content}</p>)}
-      <div style={{ borderTop: '1px solid var(--border-dim)', paddingTop: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.05em' }}>{formatDate(note.createdAt)}</span>
-        <span className="nb-badge" style={{ color: 'var(--accent-yellow)', fontSize: '0.6rem', borderColor: 'var(--accent-yellow)' }}>NOTE</span>
-      </div>
-    </div>
-  );
+    );
+  };
 
   /* ── Folder select dropdown for modal ── */
   const FolderSelect = () => (
@@ -330,7 +364,110 @@ export const Notes = () => {
         )}
       </div>
 
-      {/* ── Modal ── */}
+      {/* ── Move to Folder Modal ── */}
+      {movingNote && (
+        <div className="nb-modal-overlay">
+          <div className="nb-modal" style={{ maxWidth: 440 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <div>
+                <div style={{ display: 'inline-block', background: 'var(--accent-yellow)', color: '#000', fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.12em', padding: '3px 8px', marginBottom: 6, border: '2px solid #000' }}>
+                  MOVE
+                </div>
+                <h2 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
+                  Move to Folder
+                </h2>
+              </div>
+              <button onClick={() => setMovingNote(null)} style={{ background: 'transparent', border: '2px solid var(--border-dim)', color: 'var(--text-muted)', padding: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--border-primary)'; e.currentTarget.style.color = 'var(--text-primary)'; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-dim)'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
+                <CloseIcon />
+              </button>
+            </div>
+
+            <p style={{ margin: '0 0 16px 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              Select destination folder for <strong style={{ color: 'var(--text-primary)' }}>"{movingNote.title}"</strong>:
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 280, overflowY: 'auto', marginBottom: 20, paddingRight: 4 }}>
+              {/* Option for Ungrouped */}
+              <button
+                onClick={() => handleConfirmMove(null)}
+                disabled={isUpdating}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '12px 14px',
+                  background: !folderId(movingNote) ? 'rgba(255, 229, 0, 0.12)' : 'var(--bg-surface)',
+                  border: !folderId(movingNote) ? '2px solid var(--accent-yellow)' : '2px solid var(--border-dim)',
+                  color: 'var(--text-primary)',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  fontWeight: 700,
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent-yellow)'; }}
+                onMouseLeave={(e) => { if (folderId(movingNote)) e.currentTarget.style.borderColor = 'var(--border-dim)'; }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span>📄</span>
+                  <span>None (Ungrouped)</span>
+                </div>
+                {!folderId(movingNote) && (
+                  <span style={{ fontSize: '0.7rem', color: 'var(--accent-yellow)', fontWeight: 800 }}>CURRENT</span>
+                )}
+              </button>
+
+              {/* Existing folders */}
+              {noteFolders.map((folder) => {
+                const isCurrent = String(folderId(movingNote)) === String(folder._id);
+                return (
+                  <button
+                    key={folder._id}
+                    onClick={() => handleConfirmMove(folder._id)}
+                    disabled={isUpdating}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '12px 14px',
+                      background: isCurrent ? 'rgba(255, 229, 0, 0.12)' : 'var(--bg-surface)',
+                      border: isCurrent ? '2px solid var(--accent-yellow)' : '2px solid var(--border-dim)',
+                      color: 'var(--text-primary)',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      fontFamily: "'Space Grotesk', sans-serif",
+                      fontWeight: 700,
+                      transition: 'all 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent-yellow)'; }}
+                    onMouseLeave={(e) => { if (!isCurrent) e.currentTarget.style.borderColor = 'var(--border-dim)'; }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ color: 'var(--accent-yellow)' }}><FolderIcon /></span>
+                      <span>{folder.name}</span>
+                    </div>
+                    {isCurrent && (
+                      <span style={{ fontSize: '0.7rem', color: 'var(--accent-yellow)', fontWeight: 800 }}>CURRENT</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+              <button
+                onClick={() => setMovingNote(null)}
+                className="nb-btn nb-btn-secondary"
+                style={{ padding: '10px 18px' }}
+              >
+                CANCEL
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Add / Edit Modal ── */}
       {isModal && (
         <div className="nb-modal-overlay">
           <div className="nb-modal">

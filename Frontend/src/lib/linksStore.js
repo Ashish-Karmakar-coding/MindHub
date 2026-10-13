@@ -45,6 +45,32 @@ export const useLinksStore = create((set, get) => ({
     }
   },
 
+  updateLink: async (linkId, linkData) => {
+    set({ isUpdating: true });
+    try {
+      const response = await axiosInstance.put(
+        `/Links/edit-link/${linkId}`,
+        linkData
+      );
+      const updatedLink = response.data.link || response.data;
+      set((state) => ({
+        links: state.links.map((link) =>
+          link._id === linkId ? updatedLink : link
+        ),
+      }));
+      toast.success("Link updated successfully!");
+      return { success: true, link: updatedLink };
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Failed to update link"
+      );
+      console.error("Update Link Error:", error);
+      return { success: false };
+    } finally {
+      set({ isUpdating: false });
+    }
+  },
+
   deleteLink: async (linkId) => {
     set({ isDeleting: true });
     try {
