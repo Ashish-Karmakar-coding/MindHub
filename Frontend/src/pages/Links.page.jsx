@@ -2,36 +2,6 @@ import { useState, useEffect } from 'react';
 import { useLinksStore } from '../lib/linksStore';
 import { useLinkFoldersStore } from '../lib/linkFoldersStore';
 
-/* ── Icons ── */
-const PlusIcon = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>);
-const ExternalLinkIcon = () => (<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15,3 21,3 21,9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>);
-const TrashIcon = () => (<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square"><polyline points="3,6 5,6 21,6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" /></svg>);
-const SearchIcon = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>);
-const CloseIcon = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>);
-const FolderIcon = () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>);
-const FolderMoveIcon = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square">
-    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-    <path d="M12 11l3 3m0 0l-3 3m3-3H9" />
-  </svg>
-);
-const BackIcon = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12,19 5,12 12,5" /></svg>);
-const SpinnerStyle = () => (<style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>);
-
-const Spinner = ({ color = 'var(--accent-cyan)', size = 16 }) => (
-  <><SpinnerStyle /><div style={{ width: size, height: size, border: `2px solid transparent`, borderTop: `2px solid ${color}`, borderRadius: '50%', animation: 'spin 0.8s linear infinite', flexShrink: 0 }} /></>
-);
-
-const btnHover = (accent) => ({
-  onMouseEnter: (e) => { e.currentTarget.style.transform = 'translate(-2px,-2px)'; e.currentTarget.style.boxShadow = `6px 6px 0px ${accent}`; },
-  onMouseLeave: (e) => { e.currentTarget.style.transform = 'translate(0,0)'; e.currentTarget.style.boxShadow = `4px 4px 0px ${accent}`; },
-});
-
-const getDomain = (url) => {
-  try { return new URL(url).hostname.replace('www.', ''); }
-  catch { return url.replace(/^https?:\/\//, '').split('/')[0]; }
-};
-
 export const Links = () => {
   const { links, isLoading, isAdding, isUpdating, isDeleting, fetchLinks, addLink, updateLink, deleteLink } = useLinksStore();
   const { linkFolders, isLoadingFolders, isCreatingFolder, fetchLinkFolders, createLinkFolder, deleteLinkFolder } = useLinkFoldersStore();
@@ -39,27 +9,39 @@ export const Links = () => {
   const [view, setView] = useState('main');
   const [selectedFolder, setSelectedFolder] = useState(null);
 
+  // Modals state
   const [isAddingLink, setIsAddingLink] = useState(false);
   const [movingLink, setMovingLink] = useState(null);
   const [formData, setFormData] = useState({ title: '', url: '', description: '', folder_id: '' });
 
+  // Folder creation state
   const [showNewFolderInput, setShowNewFolderInput] = useState(false);
   const [inlineFolderName, setInlineFolderName] = useState('');
-
   const [isAddingFolder, setIsAddingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
 
   const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => { fetchLinks(); fetchLinkFolders(); }, [fetchLinks, fetchLinkFolders]);
+  useEffect(() => {
+    fetchLinks();
+    fetchLinkFolders();
+  }, [fetchLinks, fetchLinkFolders]);
 
   const folderId = (l) => l.folder_id?._id || l.folder_id || null;
   const ungroupedLinks = links.filter((l) => !folderId(l));
   const linksInFolder = (folder) => links.filter((l) => String(folderId(l)) === String(folder._id));
 
   const displayLinks = view === 'folder' && selectedFolder
-    ? linksInFolder(selectedFolder).filter((l) => l.title.toLowerCase().includes(searchQuery.toLowerCase()) || l.url.toLowerCase().includes(searchQuery.toLowerCase()) || (l.description && l.description.toLowerCase().includes(searchQuery.toLowerCase())))
-    : ungroupedLinks.filter((l) => l.title.toLowerCase().includes(searchQuery.toLowerCase()) || l.url.toLowerCase().includes(searchQuery.toLowerCase()) || (l.description && l.description.toLowerCase().includes(searchQuery.toLowerCase())));
+    ? linksInFolder(selectedFolder).filter((l) =>
+        l.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        l.url.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (l.description && l.description.toLowerCase().includes(searchQuery.toLowerCase()))
+      )
+    : ungroupedLinks.filter((l) =>
+        l.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        l.url.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (l.description && l.description.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
 
   const openAddLink = () => {
     setFormData({ title: '', url: '', description: '', folder_id: selectedFolder?._id || '' });
@@ -72,13 +54,30 @@ export const Links = () => {
     if (!formData.title.trim() || !formData.url.trim()) return;
     let url = formData.url.trim();
     if (!url.startsWith('http://') && !url.startsWith('https://')) url = 'https://' + url;
-    const result = await addLink({ title: formData.title.trim(), url, description: formData.description.trim(), folder_id: formData.folder_id || null });
-    if (result.success) { setFormData({ title: '', url: '', description: '', folder_id: '' }); setIsAddingLink(false); await fetchLinkFolders(); }
+    const result = await addLink({
+      title: formData.title.trim(),
+      url,
+      description: formData.description.trim(),
+      folder_id: formData.folder_id || null,
+    });
+    if (result.success) {
+      setFormData({ title: '', url: '', description: '', folder_id: '' });
+      setIsAddingLink(false);
+      await fetchLinkFolders();
+    }
   };
 
-  const handleCancel = () => { setIsAddingLink(false); setFormData({ title: '', url: '', description: '', folder_id: '' }); setShowNewFolderInput(false); setInlineFolderName(''); };
+  const handleCancel = () => {
+    setIsAddingLink(false);
+    setFormData({ title: '', url: '', description: '', folder_id: '' });
+    setShowNewFolderInput(false);
+    setInlineFolderName('');
+  };
 
-  const handleDeleteLink = async (linkId) => { await deleteLink(linkId); await fetchLinkFolders(); };
+  const handleDeleteLink = async (linkId) => {
+    await deleteLink(linkId);
+    await fetchLinkFolders();
+  };
 
   const handleConfirmMove = async (targetFolderId) => {
     if (!movingLink) return;
@@ -97,47 +96,59 @@ export const Links = () => {
   const handleCreateInlineFolder = async () => {
     if (!inlineFolderName.trim()) return;
     const result = await createLinkFolder(inlineFolderName.trim());
-    if (result.success) { setFormData((p) => ({ ...p, folder_id: result.folder._id })); setInlineFolderName(''); setShowNewFolderInput(false); }
+    if (result.success) {
+      setFormData((p) => ({ ...p, folder_id: result.folder._id }));
+      setInlineFolderName('');
+      setShowNewFolderInput(false);
+    }
   };
 
   const handleCreateFolder = async () => {
     if (!newFolderName.trim()) return;
     const result = await createLinkFolder(newFolderName.trim());
-    if (result.success) { setNewFolderName(''); setIsAddingFolder(false); }
+    if (result.success) {
+      setNewFolderName('');
+      setIsAddingFolder(false);
+    }
   };
 
   const handleDeleteFolder = async (fId) => {
     await deleteLinkFolder(fId);
-    if (selectedFolder?._id === fId) { setSelectedFolder(null); setView('main'); }
+    if (selectedFolder?._id === fId) {
+      setSelectedFolder(null);
+      setView('main');
+    }
     await fetchLinks();
   };
 
-  const openFolder = (folder) => { setSelectedFolder(folder); setView('folder'); setSearchQuery(''); };
-  const goBack = () => { setSelectedFolder(null); setView('main'); setSearchQuery(''); };
-  const openLink = (url) => window.open(url, '_blank', 'noopener,noreferrer');
-  const formatDate = (d) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const openFolder = (folder) => {
+    setSelectedFolder(folder);
+    setView('folder');
+    setSearchQuery('');
+  };
 
-  /* ── Folder dropdown ── */
-  const FolderSelect = () => (
-    <div>
-      <label className="nb-label">Save to Folder <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
-      {!showNewFolderInput ? (
-        <select value={formData.folder_id} onChange={(e) => { if (e.target.value === '__new__') setShowNewFolderInput(true); else setFormData((p) => ({ ...p, folder_id: e.target.value })); }} className="nb-input" style={{ cursor: 'pointer' }}>
-          <option value="">No folder (ungrouped)</option>
-          {linkFolders.map((f) => <option key={f._id} value={f._id}>{f.name}</option>)}
-          <option value="__new__">+ Create new folder...</option>
-        </select>
-      ) : (
-        <div style={{ display: 'flex', gap: 8 }}>
-          <input type="text" placeholder="New folder name..." value={inlineFolderName} onChange={(e) => setInlineFolderName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleCreateInlineFolder(); if (e.key === 'Escape') { setShowNewFolderInput(false); setInlineFolderName(''); } }} className="nb-input" autoFocus />
-          <button onClick={handleCreateInlineFolder} disabled={isCreatingFolder || !inlineFolderName.trim()} style={{ padding: '10px 14px', background: 'var(--accent-cyan)', color: '#000', border: '3px solid var(--border-primary)', fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', flexShrink: 0 }}>
-            {isCreatingFolder ? <Spinner /> : '+ Create'}
-          </button>
-          <button onClick={() => { setShowNewFolderInput(false); setInlineFolderName(''); }} className="nb-btn nb-btn-secondary" style={{ padding: '10px 14px', flexShrink: 0 }}>Cancel</button>
-        </div>
-      )}
-    </div>
-  );
+  const goBack = () => {
+    setSelectedFolder(null);
+    setView('main');
+    setSearchQuery('');
+  };
+
+  const openLink = (url) => window.open(url, '_blank', 'noopener,noreferrer');
+
+  const getDomain = (url) => {
+    try {
+      return new URL(url).hostname.replace('www.', '');
+    } catch {
+      return url.replace(/^https?:\/\//, '').split('/')[0];
+    }
+  };
+
+  const formatDate = (d) =>
+    new Date(d).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
 
   /* ── Link Card ── */
   const LinkCard = ({ link }) => {
@@ -145,214 +156,353 @@ export const Links = () => {
     const folderObj = currentFId ? linkFolders.find((f) => String(f._id) === String(currentFId)) : null;
 
     return (
-      <div style={{ background: 'var(--bg-surface)', border: '3px solid var(--border-primary)', boxShadow: '4px 4px 0px var(--accent-cyan)', padding: '20px', display: 'flex', flexDirection: 'column', gap: 10, transition: 'transform 0.1s ease, box-shadow 0.1s ease' }} {...btnHover('var(--accent-cyan)')}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
-          <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)', flex: 1, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.4 }}>{link.title}</h3>
-          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-            <button onClick={() => setMovingLink(link)} disabled={isUpdating || isDeleting} style={{ background: 'transparent', border: '2px solid var(--border-dim)', color: 'var(--text-muted)', padding: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', transition: 'border-color 0.15s, color 0.15s' }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent-cyan)'; e.currentTarget.style.color = 'var(--accent-cyan)'; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-dim)'; e.currentTarget.style.color = 'var(--text-muted)'; }} title="Move to folder"><FolderMoveIcon /></button>
-            <button onClick={() => openLink(link.url)} style={{ background: 'var(--accent-cyan)', border: '2px solid var(--border-primary)', color: '#000', padding: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', transition: 'transform 0.1s' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.1)'; }} onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }} title="Open link"><ExternalLinkIcon /></button>
-            <button onClick={() => handleDeleteLink(link._id)} disabled={isDeleting} style={{ background: 'transparent', border: '2px solid var(--border-dim)', color: 'var(--text-muted)', padding: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', transition: 'border-color 0.15s, color 0.15s, background 0.15s' }} onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,59,59,0.1)'; e.currentTarget.style.borderColor = 'var(--accent-coral)'; e.currentTarget.style.color = 'var(--accent-coral)'; }} onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--border-dim)'; e.currentTarget.style.color = 'var(--text-muted)'; }} title="Delete link"><TrashIcon /></button>
+      <article className="group flex flex-col justify-between rounded-xl bg-[#1a1c1f] hover:bg-[#1e2023] p-5 border border-white/5 hover:border-white/10 transition-all duration-200 shadow-md">
+        <div className="flex flex-col gap-2.5">
+          {/* Card Top: Domain Pill & Action Controls */}
+          <div className="flex items-center justify-between gap-2">
+            <button
+              onClick={() => openLink(link.url)}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#282a2d] hover:bg-[#333538] text-[#d0bcff] font-mono text-[11px] font-medium border border-white/5 transition-colors cursor-pointer text-left"
+              title="Open website"
+            >
+              <span className="text-[11px] leading-none text-[#d0bcff]">⬡</span>
+              <span className="truncate max-w-[150px]">{getDomain(link.url)}</span>
+            </button>
+
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setMovingLink(link)}
+                disabled={isUpdating || isDeleting}
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-[#94a3b8] hover:text-[#e2e2e6] hover:bg-[#282a2d] transition-colors cursor-pointer"
+                title="Move to folder"
+              >
+                <span className="material-symbols-outlined text-[16px]">drive_file_move</span>
+              </button>
+              <button
+                onClick={() => openLink(link.url)}
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-[#94a3b8] hover:text-[#c0c1ff] hover:bg-[#282a2d] transition-colors cursor-pointer"
+                title="Open link"
+              >
+                <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+              </button>
+              <button
+                onClick={() => handleDeleteLink(link._id)}
+                disabled={isDeleting}
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-[#94a3b8] hover:text-[#ffb4ab] hover:bg-[#282a2d] transition-colors cursor-pointer"
+                title="Delete link"
+              >
+                <span className="material-symbols-outlined text-[16px]">delete</span>
+              </button>
+            </div>
           </div>
+
+          {/* Title & Description */}
+          <h3 className="text-base font-semibold text-[#e2e2e6] group-hover:text-[#c0c1ff] transition-colors line-clamp-2 leading-snug">
+            {link.title}
+          </h3>
+          {link.description && (
+            <p className="text-xs text-[#94a3b8] line-clamp-3 leading-relaxed">
+              {link.description}
+            </p>
+          )}
         </div>
-        <button onClick={() => openLink(link.url)} style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-dim)', padding: '6px 10px', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', textAlign: 'left', width: '100%' }}>
-          <span style={{ color: 'var(--accent-cyan)', fontSize: '0.65rem', fontWeight: 700, flexShrink: 0 }}>⬡</span>
-          <span style={{ fontSize: '0.75rem', color: 'var(--accent-cyan)', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{getDomain(link.url)}</span>
-        </button>
-        {link.description && (<p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{link.description}</p>)}
-        <div style={{ borderTop: '1px solid var(--border-dim)', paddingTop: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
-          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.05em' }}>{formatDate(link.createdAt)}</span>
-          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-            {folderObj && (
-              <span className="nb-badge" style={{ color: 'var(--accent-cyan)', fontSize: '0.6rem', borderColor: 'var(--accent-cyan)' }}>
-                📁 {folderObj.name}
-              </span>
-            )}
-            <span className="nb-badge" style={{ color: 'var(--accent-cyan)', fontSize: '0.6rem', borderColor: 'var(--accent-cyan)' }}>LINK</span>
-          </div>
+
+        {/* Footer */}
+        <div className="pt-3 mt-4 border-t border-white/5 flex items-center justify-between text-[11px] font-mono text-[#94a3b8]">
+          <span>{formatDate(link.createdAt)}</span>
+          {folderObj ? (
+            <span className="inline-flex items-center gap-1 text-[#d0bcff]">
+              <span className="material-symbols-outlined text-[13px]">folder</span>
+              <span className="truncate max-w-[120px]">{folderObj.name}</span>
+            </span>
+          ) : (
+            <span className="text-[#94a3b8]/60">LINK</span>
+          )}
         </div>
-      </div>
+      </article>
     );
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-base)', padding: 'clamp(20px, 4vw, 40px)', fontFamily: "'Space Grotesk', sans-serif" }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-
-        {/* ── Header ── */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 28 }}>
-          <div>
-            {view === 'folder' ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <button onClick={goBack} style={{ background: 'transparent', border: '2px solid var(--border-dim)', color: 'var(--text-muted)', padding: '6px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontFamily: "'Space Grotesk', sans-serif", fontWeight: 600, fontSize: '0.8rem', transition: 'border-color 0.15s, color 0.15s' }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--border-primary)'; e.currentTarget.style.color = 'var(--text-primary)'; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-dim)'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
-                  <BackIcon /> All Links
-                </button>
-                <span style={{ color: 'var(--text-muted)' }}>/</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ width: 8, height: 28, background: 'var(--accent-cyan)', border: '2px solid var(--border-primary)' }} />
-                  <h1 style={{ margin: 0, fontSize: 'clamp(1.4rem, 3vw, 2rem)', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em', textTransform: 'uppercase' }}>{selectedFolder?.name}</h1>
-                </div>
+    <div className="p-6 md:p-8 max-w-7xl mx-auto flex flex-col gap-8">
+      {/* ── Top Header Toolbar ── */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-white/5">
+        <div className="flex items-center gap-3 min-w-0">
+          {view === 'folder' ? (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={goBack}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#1a1c1f] text-xs text-[#94a3b8] hover:text-[#e2e2e6] border border-white/5 transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+                <span>All Links</span>
+              </button>
+              <span className="text-[#94a3b8] font-mono">/</span>
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#d0bcff] text-[20px]">folder_open</span>
+                <h1 className="text-xl sm:text-2xl font-bold text-[#e2e2e6] uppercase tracking-tight truncate">
+                  {selectedFolder?.name}
+                </h1>
               </div>
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 8, height: 32, background: 'var(--accent-cyan)', border: '2px solid var(--border-primary)' }} />
-                <h1 style={{ margin: 0, fontSize: 'clamp(1.6rem, 3vw, 2.4rem)', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>MY LINKS</h1>
-              </div>
-            )}
-            <p style={{ margin: '4px 0 0 20px', color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 500 }}>
-              {displayLinks.length} {displayLinks.length === 1 ? 'link' : 'links'}{searchQuery && ' found'}
-            </p>
-          </div>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-            <div style={{ position: 'relative' }}>
-              <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }}><SearchIcon /></span>
-              <input type="text" placeholder="Search links..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="nb-input" style={{ paddingLeft: 36, width: 200, fontSize: '0.875rem' }} />
             </div>
-            <button onClick={openAddLink} style={{ gap: 8, padding: '10px 18px', background: 'var(--accent-cyan)', color: '#000', border: '3px solid var(--border-primary)', boxShadow: '4px 4px 0px var(--border-primary)', fontWeight: 700, fontSize: '0.85rem', letterSpacing: '0.05em', cursor: 'pointer', transition: 'transform 0.1s, box-shadow 0.1s', fontFamily: "'Space Grotesk', sans-serif", display: 'flex', alignItems: 'center' }} {...btnHover('var(--border-primary)')}>
-              <PlusIcon /> ADD LINK
-            </button>
-          </div>
+          ) : (
+            <div className="flex items-center gap-2.5">
+              <span className="material-symbols-outlined text-[#d0bcff] text-[24px]">link</span>
+              <h1 className="text-2xl font-bold text-[#e2e2e6] uppercase tracking-tight">
+                My Links
+              </h1>
+            </div>
+          )}
+
+          <span className="px-2.5 py-0.5 rounded-full bg-[#1a1c1f] text-[11px] font-mono text-[#d0bcff] border border-white/5">
+            {displayLinks.length} {displayLinks.length === 1 ? 'link' : 'links'}
+          </span>
         </div>
 
-        {/* ── Loading ── */}
-        {(isLoading || isLoadingFolders) ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 0' }}>
-            <SpinnerStyle />
-            <div style={{ width: 40, height: 40, border: '3px solid var(--border-dim)', borderTop: '3px solid var(--accent-cyan)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+        {/* Search & Actions */}
+        <div className="flex items-center gap-2.5 flex-1 md:flex-initial justify-end">
+          <div className="relative flex-1 sm:w-72">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#94a3b8] text-[18px]">
+              search
+            </span>
+            <input
+              type="text"
+              placeholder="Filter links... [⌘K]"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-[#0c0e11] text-[#e2e2e6] text-xs pl-9 pr-10 py-2 rounded-lg border border-white/10 focus:border-[#d0bcff] focus:outline-none transition-colors"
+            />
+            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded bg-[#1e2023] text-[10px] font-mono text-[#94a3b8]">
+              ⌘K
+            </span>
           </div>
-        ) : (
-          <>
-            {/* ── Folders section (main view only) ── */}
-            {view === 'main' && (
-              <div style={{ marginBottom: 36 }}>
-                <div style={{ display: 'center', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ width: 4, height: 18, background: 'var(--accent-cyan)' }} />
-                    <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Folders</span>
-                  </div>
-                  {!isAddingFolder ? (
-                    <button onClick={() => setIsAddingFolder(true)} style={{ background: 'none', border: 'none', color: 'var(--accent-cyan)', fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <PlusIcon /> New Folder
-                    </button>
-                  ) : (
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                      <input type="text" placeholder="Folder name..." value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleCreateFolder(); if (e.key === 'Escape') { setIsAddingFolder(false); setNewFolderName(''); } }} className="nb-input" style={{ padding: '7px 12px', fontSize: '0.85rem', width: 180 }} autoFocus />
-                      <button onClick={handleCreateFolder} disabled={isCreatingFolder || !newFolderName.trim()} style={{ padding: '7px 12px', background: 'var(--accent-cyan)', color: '#000', border: '2px solid var(--border-primary)', fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}>
-                        {isCreatingFolder ? <Spinner size={14} /> : '+ Add'}
-                      </button>
-                      <button onClick={() => { setIsAddingFolder(false); setNewFolderName(''); }} className="nb-btn nb-btn-secondary" style={{ padding: '7px 10px', fontSize: '0.8rem' }}>✕</button>
-                    </div>
-                  )}
+
+          <button
+            onClick={openAddLink}
+            className="tac-btn-primary shrink-0"
+          >
+            <span className="material-symbols-outlined text-[17px]">add</span>
+            <span>Add Link</span>
+          </button>
+        </div>
+      </div>
+
+      {isLoading || isLoadingFolders ? (
+        <div className="flex items-center justify-center min-h-[50vh] flex-col gap-3">
+          <div className="w-8 h-8 border-2 border-white/10 border-t-[#d0bcff] rounded-full animate-spin" />
+          <span className="text-xs font-mono uppercase tracking-widest text-[#94a3b8]">
+            Loading reference graph...
+          </span>
+        </div>
+      ) : (
+        <>
+          {/* ── Folders Section (Main view only) ── */}
+          {view === 'main' && (
+            <section className="flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono font-semibold uppercase tracking-wider text-[#94a3b8]">
+                    FOLDERS
+                  </span>
+                  <span className="text-xs font-mono text-[#94a3b8]">
+                    ({linkFolders.length})
+                  </span>
                 </div>
 
-                {linkFolders.length === 0 ? (
-                  <div style={{ border: '2px dashed var(--border-dim)', padding: '20px 24px', display: 'flex', alignItems: 'center', gap: 12, color: 'var(--text-muted)' }}>
-                    <FolderIcon />
-                    <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>No folders yet. Create one to organize your links.</span>
-                  </div>
-                ) : (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 14 }}>
-                    {linkFolders.map((folder) => (
-                      <div key={folder._id} style={{ position: 'relative' }}>
-                        <button onClick={() => openFolder(folder)} style={{ width: '100%', background: 'var(--bg-surface)', border: '3px solid var(--border-primary)', boxShadow: '3px 3px 0px var(--accent-cyan)', padding: '16px', cursor: 'pointer', textAlign: 'left', transition: 'transform 0.1s, box-shadow 0.1s', display: 'flex', flexDirection: 'column', gap: 8 }} {...btnHover('var(--accent-cyan)')}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--accent-cyan)' }}><FolderIcon /></div>
-                          <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{folder.name}</div>
-                          <div style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.05em' }}>{folder.linkCount ?? 0} {folder.linkCount === 1 ? 'link' : 'links'}</div>
-                        </button>
-                        <button onClick={(e) => { e.stopPropagation(); handleDeleteFolder(folder._id); }} style={{ position: 'absolute', top: 6, right: 6, background: 'var(--bg-elevated)', border: '1px solid var(--border-dim)', color: 'var(--text-muted)', width: 22, height: 22, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', transition: 'background 0.15s, color 0.15s' }} onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,59,59,0.2)'; e.currentTarget.style.color = 'var(--accent-coral)'; }} onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--bg-elevated)'; e.currentTarget.style.color = 'var(--text-muted)'; }} title="Delete folder">✕</button>
+                {!isAddingFolder ? (
+                  <button
+                    onClick={() => setIsAddingFolder(true)}
+                    className="inline-flex items-center gap-1 text-xs text-[#d0bcff] hover:text-[#e9ddff] font-medium transition-colors cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[15px]">create_new_folder</span>
+                    <span>New Folder</span>
+                  </button>
+                ) : null}
+              </div>
+
+              {/* Inline Folder Creation Bar */}
+              {isAddingFolder && (
+                <div className="bg-[#1a1c1f] p-2 rounded-xl border border-white/10 flex items-center gap-2 shadow-sm">
+                  <span className="material-symbols-outlined text-[#d0bcff] text-[20px] pl-2">
+                    folder_open
+                  </span>
+                  <input
+                    type="text"
+                    placeholder="Folder name (e.g., Design Systems & UI)..."
+                    value={newFolderName}
+                    onChange={(e) => setNewFolderName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleCreateFolder();
+                      if (e.key === 'Escape') {
+                        setIsAddingFolder(false);
+                        setNewFolderName('');
+                      }
+                    }}
+                    autoFocus
+                    className="bg-[#0c0e11] text-[#e2e2e6] text-xs px-3 py-1.5 rounded-lg flex-1 border border-white/5 focus:outline-none focus:border-[#d0bcff]"
+                  />
+                  <button
+                    onClick={handleCreateFolder}
+                    disabled={isCreatingFolder || !newFolderName.trim()}
+                    className="tac-btn-primary text-xs py-1.5 px-3"
+                  >
+                    Add
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsAddingFolder(false);
+                      setNewFolderName('');
+                    }}
+                    className="p-1.5 rounded-lg text-[#94a3b8] hover:text-[#e2e2e6] hover:bg-[#282a2d] transition-colors cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">close</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Folder Cards Grid */}
+              {linkFolders.length === 0 ? (
+                <div className="p-6 rounded-xl bg-[#14171d] border border-white/5 text-center flex items-center justify-center gap-2 text-xs text-[#94a3b8]">
+                  <span className="material-symbols-outlined text-[18px]">folder_off</span>
+                  <span>No folders created yet. Click "New Folder" to categorize your links.</span>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                  {linkFolders.map((folder) => (
+                    <div
+                      key={folder._id}
+                      onClick={() => openFolder(folder)}
+                      className="group relative bg-[#1a1c1f] hover:bg-[#1e2023] p-3.5 rounded-xl border border-white/5 hover:border-white/10 flex items-center justify-between transition-all cursor-pointer shadow-sm"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-9 h-9 rounded-lg bg-[#282a2d] group-hover:bg-[#d0bcff]/20 flex items-center justify-center text-[#d0bcff] transition-colors shrink-0">
+                          <span className="material-symbols-outlined text-[20px]">folder</span>
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-sm font-medium text-[#e2e2e6] group-hover:text-[#d0bcff] transition-colors truncate">
+                            {folder.name}
+                          </span>
+                          <span className="text-[11px] font-mono text-[#94a3b8]">
+                            {folder.linkCount ?? 0} {folder.linkCount === 1 ? 'link' : 'links'}
+                          </span>
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
 
-            {/* ── Section label ── */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteFolder(folder._id);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 p-1 rounded-lg hover:bg-[#ffb4ab]/10 text-[#94a3b8] hover:text-[#ffb4ab] transition-all cursor-pointer"
+                        title="Delete folder"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">close</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* ── Links Section ── */}
+          <section className="flex flex-col gap-4">
             {view === 'main' && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-                <div style={{ width: 4, height: 18, background: 'var(--accent-cyan)' }} />
-                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Ungrouped Links</span>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-mono font-semibold uppercase tracking-wider text-[#94a3b8]">
+                  Ungrouped & All Links
+                </span>
+                <span className="text-xs font-mono text-[#94a3b8]">
+                  {displayLinks.length} visible
+                </span>
               </div>
             )}
 
-            {/* ── Links grid ── */}
             {displayLinks.length === 0 ? (
-              <div style={{ border: '2px dashed var(--border-dim)', padding: '60px 24px', textAlign: 'center' }}>
-                <div style={{ fontSize: '3rem', marginBottom: 16 }}>🔗</div>
-                <p style={{ margin: '0 0 8px 0', color: 'var(--text-secondary)', fontWeight: 700, fontSize: '1.1rem' }}>
-                  {searchQuery ? 'No links found' : view === 'folder' ? 'No links in this folder' : 'No ungrouped links'}
+              <div className="p-12 rounded-xl bg-[#14171d] border border-white/5 text-center flex flex-col items-center gap-3">
+                <span className="material-symbols-outlined text-4xl text-[#94a3b8]/40">
+                  bookmark_border
+                </span>
+                <p className="text-sm font-medium text-[#e2e2e6]">
+                  {searchQuery
+                    ? 'No links match your search'
+                    : view === 'folder'
+                    ? 'No links in this folder yet'
+                    : 'No links saved yet'}
                 </p>
-                <p style={{ margin: '0 0 20px 0', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                  {searchQuery ? `No results for "${searchQuery}"` : 'Save a link to get started'}
+                <p className="text-xs text-[#94a3b8] max-w-sm">
+                  {searchQuery
+                    ? `No records found for "${searchQuery}"`
+                    : 'Save links and articles to organize your external knowledge reference graph.'}
                 </p>
                 {!searchQuery && (
-                  <button onClick={openAddLink} style={{ padding: '10px 20px', background: 'var(--accent-cyan)', color: '#000', border: '3px solid var(--border-primary)', boxShadow: '4px 4px 0px var(--border-primary)', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', fontFamily: "'Space Grotesk', sans-serif", display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                    <PlusIcon /> SAVE LINK
+                  <button
+                    onClick={openAddLink}
+                    className="tac-btn-primary mt-2"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">add</span>
+                    <span>Save Link</span>
                   </button>
                 )}
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
-                {displayLinks.map((link) => <LinkCard key={link._id} link={link} />)}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {displayLinks.map((link) => (
+                  <LinkCard key={link._id} link={link} />
+                ))}
               </div>
             )}
-          </>
-        )}
-      </div>
+          </section>
+        </>
+      )}
 
       {/* ── Move to Folder Modal ── */}
       {movingLink && (
-        <div className="nb-modal-overlay">
-          <div className="nb-modal" style={{ maxWidth: 440, boxShadow: '8px 8px 0px var(--accent-cyan)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <div>
-                <div style={{ display: 'inline-block', background: 'var(--accent-cyan)', color: '#000', fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.12em', padding: '3px 8px', marginBottom: 6, border: '2px solid #000' }}>
-                  MOVE
-                </div>
-                <h2 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
+        <div className="tac-modal-overlay">
+          <div className="tac-modal">
+            <div className="flex items-center justify-between pb-4 border-b border-white/5 mb-4">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#d0bcff] text-[20px]">
+                  drive_file_move
+                </span>
+                <h2 className="text-base font-semibold text-[#e2e2e6]">
                   Move to Folder
                 </h2>
               </div>
-              <button onClick={() => setMovingLink(null)} style={{ background: 'transparent', border: '2px solid var(--border-dim)', color: 'var(--text-muted)', padding: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--border-primary)'; e.currentTarget.style.color = 'var(--text-primary)'; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-dim)'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
-                <CloseIcon />
+              <button
+                onClick={() => setMovingLink(null)}
+                className="p-1 rounded-lg text-[#94a3b8] hover:text-[#e2e2e6] hover:bg-[#282a2d] transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
 
-            <p style={{ margin: '0 0 16px 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-              Select destination folder for <strong style={{ color: 'var(--text-primary)' }}>"{movingLink.title}"</strong>:
+            <p className="text-xs text-[#94a3b8] mb-4">
+              Select destination folder for{' '}
+              <strong className="text-[#e2e2e6]">"{movingLink.title}"</strong>:
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 280, overflowY: 'auto', marginBottom: 20, paddingRight: 4 }}>
-              {/* Option for Ungrouped */}
+            <div className="flex flex-col gap-2 max-h-60 overflow-y-auto pr-1 mb-5">
+              {/* Option: Ungrouped */}
               <button
                 onClick={() => handleConfirmMove(null)}
                 disabled={isUpdating}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '12px 14px',
-                  background: !folderId(movingLink) ? 'rgba(0, 245, 255, 0.12)' : 'var(--bg-surface)',
-                  border: !folderId(movingLink) ? '2px solid var(--accent-cyan)' : '2px solid var(--border-dim)',
-                  color: 'var(--text-primary)',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  fontFamily: "'Space Grotesk', sans-serif",
-                  fontWeight: 700,
-                  transition: 'all 0.15s ease',
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent-cyan)'; }}
-                onMouseLeave={(e) => { if (folderId(movingLink)) e.currentTarget.style.borderColor = 'var(--border-dim)'; }}
+                className={`flex items-center justify-between p-3 rounded-xl border text-xs font-medium transition-all text-left cursor-pointer ${
+                  !folderId(movingLink)
+                    ? 'bg-[#d0bcff]/10 border-[#d0bcff] text-[#e2e2e6]'
+                    : 'bg-[#14171d] border-white/5 text-[#94a3b8] hover:border-white/10 hover:text-[#e2e2e6]'
+                }`}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span>🌐</span>
+                <div className="flex items-center gap-2.5">
+                  <span className="material-symbols-outlined text-[18px]">folder_off</span>
                   <span>None (Ungrouped)</span>
                 </div>
                 {!folderId(movingLink) && (
-                  <span style={{ fontSize: '0.7rem', color: 'var(--accent-cyan)', fontWeight: 800 }}>CURRENT</span>
+                  <span className="text-[10px] font-mono text-[#d0bcff] font-semibold">CURRENT</span>
                 )}
               </button>
 
-              {/* Existing folders */}
+              {/* Option: Existing folders */}
               {linkFolders.map((folder) => {
                 const isCurrent = String(folderId(movingLink)) === String(folder._id);
                 return (
@@ -360,42 +510,32 @@ export const Links = () => {
                     key={folder._id}
                     onClick={() => handleConfirmMove(folder._id)}
                     disabled={isUpdating}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '12px 14px',
-                      background: isCurrent ? 'rgba(0, 245, 255, 0.12)' : 'var(--bg-surface)',
-                      border: isCurrent ? '2px solid var(--accent-cyan)' : '2px solid var(--border-dim)',
-                      color: 'var(--text-primary)',
-                      cursor: 'pointer',
-                      textAlign: 'left',
-                      fontFamily: "'Space Grotesk', sans-serif",
-                      fontWeight: 700,
-                      transition: 'all 0.15s ease',
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent-cyan)'; }}
-                    onMouseLeave={(e) => { if (!isCurrent) e.currentTarget.style.borderColor = 'var(--border-dim)'; }}
+                    className={`flex items-center justify-between p-3 rounded-xl border text-xs font-medium transition-all text-left cursor-pointer ${
+                      isCurrent
+                        ? 'bg-[#d0bcff]/10 border-[#d0bcff] text-[#e2e2e6]'
+                        : 'bg-[#14171d] border-white/5 text-[#94a3b8] hover:border-white/10 hover:text-[#e2e2e6]'
+                    }`}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <span style={{ color: 'var(--accent-cyan)' }}><FolderIcon /></span>
+                    <div className="flex items-center gap-2.5">
+                      <span className="material-symbols-outlined text-[18px] text-[#d0bcff]">
+                        folder
+                      </span>
                       <span>{folder.name}</span>
                     </div>
                     {isCurrent && (
-                      <span style={{ fontSize: '0.7rem', color: 'var(--accent-cyan)', fontWeight: 800 }}>CURRENT</span>
+                      <span className="text-[10px] font-mono text-[#d0bcff] font-semibold">CURRENT</span>
                     )}
                   </button>
                 );
               })}
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+            <div className="flex justify-end gap-2">
               <button
                 onClick={() => setMovingLink(null)}
-                className="nb-btn nb-btn-secondary"
-                style={{ padding: '10px 18px' }}
+                className="tac-btn-secondary text-xs"
               >
-                CANCEL
+                Cancel
               </button>
             </div>
           </div>
@@ -404,40 +544,154 @@ export const Links = () => {
 
       {/* ── Save Link Modal ── */}
       {isAddingLink && (
-        <div className="nb-modal-overlay">
-          <div className="nb-modal" style={{ boxShadow: '8px 8px 0px var(--accent-cyan)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-              <div>
-                <div style={{ display: 'inline-block', background: 'var(--accent-cyan)', color: '#000', fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.12em', padding: '3px 8px', marginBottom: 6, border: '2px solid #000' }}>NEW</div>
-                <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>Save Link</h2>
+        <div className="tac-modal-overlay">
+          <div className="tac-modal">
+            <div className="flex items-center justify-between pb-4 border-b border-white/5 mb-4">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#d0bcff] text-[20px]">
+                  bookmark_add
+                </span>
+                <h2 className="text-base font-semibold text-[#e2e2e6]">
+                  Save Link
+                </h2>
               </div>
-              <button onClick={handleCancel} disabled={isAdding} style={{ background: 'transparent', border: '2px solid var(--border-dim)', color: 'var(--text-muted)', padding: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center' }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--border-primary)'; e.currentTarget.style.color = 'var(--text-primary)'; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-dim)'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
-                <CloseIcon />
+              <button
+                onClick={handleCancel}
+                className="p-1 rounded-lg text-[#94a3b8] hover:text-[#e2e2e6] hover:bg-[#282a2d] transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+            <div className="flex flex-col gap-4">
               <div>
-                <label className="nb-label">Title *</label>
-                <input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Give this link a name..." autoFocus disabled={isAdding} className="nb-input" />
-              </div>
-              <div>
-                <label className="nb-label">URL *</label>
-                <input type="text" value={formData.url} onChange={(e) => setFormData({ ...formData, url: e.target.value })} placeholder="https://example.com" disabled={isAdding} className="nb-input" />
-                <p style={{ margin: '6px 0 0 0', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 500 }}>You can enter with or without https://</p>
-              </div>
-              <div>
-                <label className="nb-label">Description <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
-                <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="What is this link about?" rows={3} disabled={isAdding} className="nb-input nb-textarea" />
+                <label className="block text-xs font-mono uppercase text-[#94a3b8] mb-1.5">
+                  Title *
+                </label>
+                <input
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  placeholder="Give this link a title..."
+                  autoFocus
+                  disabled={isAdding}
+                  className="tac-input"
+                />
               </div>
 
-              <FolderSelect />
+              <div>
+                <label className="block text-xs font-mono uppercase text-[#94a3b8] mb-1.5">
+                  URL *
+                </label>
+                <input
+                  type="text"
+                  value={formData.url}
+                  onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+                  placeholder="https://example.com/article"
+                  disabled={isAdding}
+                  className="tac-input font-mono text-xs"
+                />
+                <p className="text-[11px] text-[#94a3b8] mt-1">
+                  Prefix with https:// or type root domain directly.
+                </p>
+              </div>
 
-              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', paddingTop: 4 }}>
-                <button onClick={handleAdd} disabled={isAdding || !formData.title.trim() || !formData.url.trim()} style={{ flex: 1, minWidth: 120, padding: '12px 16px', background: 'var(--accent-cyan)', color: '#000', border: '3px solid var(--border-primary)', boxShadow: '4px 4px 0px var(--border-primary)', fontWeight: 700, letterSpacing: '0.06em', cursor: 'pointer', transition: 'transform 0.1s, box-shadow 0.1s', fontFamily: "'Space Grotesk', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: (isAdding || !formData.title.trim() || !formData.url.trim()) ? 0.5 : 1 }}>
-                  {isAdding ? (<><Spinner /><SpinnerStyle /> SAVING...</>) : '+ SAVE LINK'}
+              <div>
+                <label className="block text-xs font-mono uppercase text-[#94a3b8] mb-1.5">
+                  Description
+                </label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Optional notes or summary about this resource..."
+                  rows={3}
+                  disabled={isAdding}
+                  className="tac-input text-xs resize-y"
+                />
+              </div>
+
+              {/* Folder Selector */}
+              <div>
+                <label className="block text-xs font-mono uppercase text-[#94a3b8] mb-1.5">
+                  Folder Assignment
+                </label>
+                {!showNewFolderInput ? (
+                  <select
+                    value={formData.folder_id}
+                    onChange={(e) => {
+                      if (e.target.value === '__new__') setShowNewFolderInput(true);
+                      else setFormData((p) => ({ ...p, folder_id: e.target.value }));
+                    }}
+                    className="tac-input cursor-pointer"
+                  >
+                    <option value="">No folder (Ungrouped)</option>
+                    {linkFolders.map((f) => (
+                      <option key={f._id} value={f._id}>
+                        {f.name}
+                      </option>
+                    ))}
+                    <option value="__new__">+ Create new folder...</option>
+                  </select>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="New folder name..."
+                      value={inlineFolderName}
+                      onChange={(e) => setInlineFolderName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleCreateInlineFolder();
+                        if (e.key === 'Escape') {
+                          setShowNewFolderInput(false);
+                          setInlineFolderName('');
+                        }
+                      }}
+                      className="tac-input text-xs"
+                      autoFocus
+                    />
+                    <button
+                      onClick={handleCreateInlineFolder}
+                      disabled={isCreatingFolder || !inlineFolderName.trim()}
+                      className="tac-btn-primary text-xs shrink-0 py-1 px-3"
+                    >
+                      + Add
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowNewFolderInput(false);
+                        setInlineFolderName('');
+                      }}
+                      className="tac-btn-secondary text-xs shrink-0 py-1 px-2.5"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="flex justify-end gap-2.5 pt-2">
+                <button
+                  onClick={handleCancel}
+                  disabled={isAdding}
+                  className="tac-btn-secondary text-xs"
+                >
+                  Cancel
                 </button>
-                <button onClick={handleCancel} disabled={isAdding} className="nb-btn nb-btn-secondary" style={{ padding: '12px 20px', letterSpacing: '0.06em' }}>CANCEL</button>
+                <button
+                  onClick={handleAdd}
+                  disabled={isAdding || !formData.title.trim() || !formData.url.trim()}
+                  className="tac-btn-primary text-xs"
+                >
+                  {isAdding ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-[#1000a9] border-t-transparent rounded-full animate-spin" />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    'Save Link'
+                  )}
+                </button>
               </div>
             </div>
           </div>

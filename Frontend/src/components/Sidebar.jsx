@@ -6,36 +6,17 @@ const NAV_ITEMS = [
   {
     label: 'Dashboard',
     path: '/',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square">
-        <rect x="3" y="3" width="7" height="7" />
-        <rect x="14" y="3" width="7" height="7" />
-        <rect x="3" y="14" width="7" height="7" />
-        <rect x="14" y="14" width="7" height="7" />
-      </svg>
-    ),
+    icon: 'grid_view',
   },
   {
     label: 'Notes',
     path: '/notes',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square">
-        <rect x="3" y="3" width="18" height="18" />
-        <line x1="7" y1="8" x2="17" y2="8" />
-        <line x1="7" y1="12" x2="17" y2="12" />
-        <line x1="7" y1="16" x2="13" y2="16" />
-      </svg>
-    ),
+    icon: 'description',
   },
   {
     label: 'Links',
     path: '/links',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square">
-        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-      </svg>
-    ),
+    icon: 'link',
   },
 ];
 
@@ -43,7 +24,6 @@ export const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { authUser, logout } = useAuthStore();
-  const [isExpanded, setIsExpanded] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   useEffect(() => {
@@ -65,282 +45,122 @@ export const Sidebar = () => {
 
   const isActive = (path) => location.pathname === path;
 
-  const sidebarWidth = (isExpanded && !isMobileOpen) ? 260 : 72;
-
   return (
     <>
-      {/* ── Mobile hamburger button ── */}
+      {/* ── Mobile hamburger trigger ── */}
       <button
         onClick={() => setIsMobileOpen(true)}
-        style={{
-          display: 'none',
-          position: 'fixed',
-          top: '12px',
-          left: '12px',
-          zIndex: 60,
-          background: 'var(--bg-surface)',
-          border: '2px solid var(--border-primary)',
-          color: 'var(--text-primary)',
-          padding: '8px',
-          cursor: 'pointer',
-          boxShadow: '3px 3px 0px var(--accent-yellow)',
-        }}
-        className="mobile-hamburger"
+        className="lg:hidden fixed top-3 left-3 z-50 p-2 rounded-lg bg-[#1a1c1f] text-[#e2e2e6] border border-white/10 shadow-md flex items-center justify-center cursor-pointer"
         aria-label="Open menu"
       >
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square">
-          <line x1="3" y1="6" x2="21" y2="6" />
-          <line x1="3" y1="12" x2="21" y2="12" />
-          <line x1="3" y1="18" x2="21" y2="18" />
-        </svg>
+        <span className="material-symbols-outlined text-[22px]">menu</span>
       </button>
-
-      <style>{`
-        @media (max-width: 1023px) {
-          .mobile-hamburger { display: flex !important; }
-          .desktop-sidebar { transform: translateX(-100%) !important; width: 260px !important; }
-          .desktop-sidebar.mobile-open { transform: translateX(0) !important; }
-        }
-      `}</style>
 
       {/* ── Mobile backdrop ── */}
       {isMobileOpen && (
         <div
           onClick={() => setIsMobileOpen(false)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.75)',
-            zIndex: 49,
-          }}
+          className="lg:hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-40 transition-opacity"
         />
       )}
 
       {/* ── Sidebar ── */}
-      <div
-        className={`desktop-sidebar ${isMobileOpen ? 'mobile-open' : ''}`}
-        onMouseEnter={() => !isMobileOpen && setIsExpanded(true)}
-        onMouseLeave={() => !isMobileOpen && setIsExpanded(false)}
-        style={{
-          position: 'fixed',
-          left: 0,
-          top: 0,
-          height: '100vh',
-          width: isMobileOpen ? 260 : sidebarWidth,
-          background: 'var(--bg-surface)',
-          borderRight: '3px solid var(--border-primary)',
-          boxShadow: '4px 0px 0px var(--accent-yellow)',
-          zIndex: 50,
-          display: 'flex',
-          flexDirection: 'column',
-          transition: 'width 0.25s ease',
-          overflow: 'hidden',
-        }}
+      <aside
+        className={`fixed left-0 top-0 h-screen w-64 bg-[#0c0e11] border-r border-white/5 z-50 flex flex-col justify-between py-5 px-3 transition-transform duration-200 ${
+          isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        }`}
       >
-        {/* Logo header */}
-        <div
-          style={{
-            padding: '20px 18px',
-            borderBottom: '2px solid var(--border-dim)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            justifyContent: 'space-between',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            {/* Logo mark */}
-            <div
-              style={{
-                minWidth: 36,
-                width: 36,
-                height: 36,
-                background: 'var(--accent-yellow)',
-                border: '2px solid var(--border-primary)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
-              <span style={{ fontWeight: 800, fontSize: '1rem', color: '#000', fontFamily: "'Space Grotesk', sans-serif" }}>M</span>
+        <div className="flex flex-col gap-6">
+          {/* Logo Header */}
+          <div className="flex items-center justify-between px-2">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-[#282a2d] border border-white/10 flex items-center justify-center text-[#c0c1ff] font-bold text-base shadow-sm">
+                M
+              </div>
+              <div className="flex flex-col">
+                <span className="font-semibold text-base text-[#e2e2e6] tracking-tight leading-none">
+                  MINDHUB
+                </span>
+                <span className="text-[10px] text-[#94a3b8] font-mono mt-0.5">
+                  v2.4.0 • Core
+                </span>
+              </div>
             </div>
-            {/* Title — shown when expanded */}
-            <span
-              style={{
-                fontWeight: 800,
-                fontSize: '1.1rem',
-                color: 'var(--text-primary)',
-                fontFamily: "'Space Grotesk', sans-serif",
-                whiteSpace: 'nowrap',
-                opacity: (isExpanded || isMobileOpen) ? 1 : 0,
-                transition: 'opacity 0.2s ease',
-                letterSpacing: '0.05em',
-              }}
-            >
-              MINDHUB
-            </span>
+
+            {/* Mobile close button */}
+            {isMobileOpen && (
+              <button
+                onClick={() => setIsMobileOpen(false)}
+                className="lg:hidden p-1 rounded text-[#94a3b8] hover:text-[#e2e2e6]"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            )}
           </div>
-          {/* Mobile close */}
-          {isMobileOpen && (
-            <button
-              onClick={() => setIsMobileOpen(false)}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--text-secondary)',
-                cursor: 'pointer',
-                padding: '4px',
-              }}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square">
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
-          )}
+
+          {/* Nav Items */}
+          <nav className="flex flex-col gap-1">
+            {NAV_ITEMS.map((item) => {
+              const active = isActive(item.path);
+              return (
+                <button
+                  key={item.path}
+                  onClick={() => {
+                    navigate(item.path);
+                    setIsMobileOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left cursor-pointer ${
+                    active
+                      ? 'bg-[#282a2d] text-[#e2e2e6] border border-white/10'
+                      : 'text-[#94a3b8] hover:bg-[#1a1c1f] hover:text-[#e2e2e6]'
+                  }`}
+                >
+                  <span
+                    className={`material-symbols-outlined text-[19px] ${
+                      active ? 'text-[#c0c1ff]' : 'text-[#94a3b8]'
+                    }`}
+                  >
+                    {item.icon}
+                  </span>
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </nav>
         </div>
 
-        {/* Nav items */}
-        <nav style={{ flex: 1, padding: '12px 0', overflowY: 'auto' }}>
-          {NAV_ITEMS.map((item) => (
-            <button
-              key={item.path}
-              onClick={() => { navigate(item.path); setIsMobileOpen(false); }}
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '14px',
-                padding: '12px 18px',
-                background: isActive(item.path) ? 'var(--accent-yellow)' : 'transparent',
-                border: 'none',
-                borderLeft: isActive(item.path) ? '4px solid #000' : '4px solid transparent',
-                borderRight: 'none',
-                cursor: 'pointer',
-                color: isActive(item.path) ? '#000000' : 'var(--text-secondary)',
-                fontFamily: "'Space Grotesk', sans-serif",
-                fontWeight: isActive(item.path) ? 700 : 500,
-                fontSize: '0.9rem',
-                letterSpacing: '0.03em',
-                textAlign: 'left',
-                transition: 'background 0.15s, color 0.15s',
-              }}
-              onMouseEnter={(e) => {
-                if (!isActive(item.path)) {
-                  e.currentTarget.style.background = 'var(--bg-elevated)';
-                  e.currentTarget.style.color = 'var(--text-primary)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive(item.path)) {
-                  e.currentTarget.style.background = 'transparent';
-                  e.currentTarget.style.color = 'var(--text-secondary)';
-                }
-              }}
-            >
-              <span style={{ flexShrink: 0, minWidth: 20 }}>{item.icon}</span>
-              <span
-                style={{
-                  whiteSpace: 'nowrap',
-                  opacity: (isExpanded || isMobileOpen) ? 1 : 0,
-                  transition: 'opacity 0.2s ease',
-                }}
-              >
-                {item.label}
-              </span>
-            </button>
-          ))}
-        </nav>
+        {/* User & Logout Section */}
+        <div className="flex flex-col gap-3 pt-3 border-t border-white/5">
+          {/* User profile card */}
+          <div className="flex items-center justify-between px-2 py-1.5 rounded-lg bg-[#14171d]/60 border border-white/5">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="relative shrink-0">
+                <div className="w-8 h-8 rounded-full bg-[#282a2d] border border-white/10 flex items-center justify-center text-xs font-bold text-[#c0c1ff]">
+                  {authUser?.name?.charAt(0).toUpperCase() || 'U'}
+                </div>
+                <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#4edea3] ring-2 ring-[#0c0e11]" />
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs font-medium text-[#e2e2e6] truncate">
+                  {authUser?.name || 'User'}
+                </span>
+                <span className="text-[10px] text-[#94a3b8] font-mono truncate">
+                  {authUser?.email || ''}
+                </span>
+              </div>
+            </div>
+          </div>
 
-        {/* User footer */}
-        <div style={{ borderTop: '2px solid var(--border-dim)' }}>
-          {/* Logout button */}
+          {/* Logout Button */}
           <button
             onClick={handleLogout}
-            style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '14px',
-              padding: '12px 18px',
-              background: 'transparent',
-              border: 'none',
-              borderLeft: '4px solid transparent',
-              cursor: 'pointer',
-              color: 'var(--text-muted)',
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontWeight: 600,
-              fontSize: '0.85rem',
-              letterSpacing: '0.03em',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255,59,59,0.1)';
-              e.currentTarget.style.color = 'var(--accent-coral)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = 'var(--text-muted)';
-            }}
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-[#94a3b8] hover:bg-[#ffb4ab]/10 hover:text-[#ffb4ab] transition-colors cursor-pointer w-full text-left"
           >
-            <span style={{ flexShrink: 0, minWidth: 20 }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <polyline points="16,17 21,12 16,7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-              </svg>
-            </span>
-            <span style={{ whiteSpace: 'nowrap', opacity: (isExpanded || isMobileOpen) ? 1 : 0, transition: 'opacity 0.2s ease' }}>
-              Logout
-            </span>
+            <span className="material-symbols-outlined text-[18px]">logout</span>
+            <span>Disconnect Session</span>
           </button>
-
-          {/* User avatar */}
-          <div
-            style={{
-              padding: '12px 18px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              borderTop: '2px solid var(--border-dim)',
-            }}
-          >
-            <div
-              style={{
-                minWidth: 36,
-                width: 36,
-                height: 36,
-                background: 'var(--accent-cyan)',
-                border: '2px solid var(--border-primary)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-                fontWeight: 800,
-                fontSize: '0.95rem',
-                color: '#000',
-                fontFamily: "'Space Grotesk', sans-serif",
-              }}
-            >
-              {authUser?.name?.charAt(0).toUpperCase() || 'U'}
-            </div>
-            <div
-              style={{
-                opacity: (isExpanded || isMobileOpen) ? 1 : 0,
-                transition: 'opacity 0.2s ease',
-                overflow: 'hidden',
-              }}
-            >
-              <p style={{ margin: 0, fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-primary)', whiteSpace: 'nowrap', fontFamily: "'Space Grotesk', sans-serif" }}>
-                {authUser?.name || 'User'}
-              </p>
-              <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 160, fontFamily: "'Space Grotesk', sans-serif" }}>
-                {authUser?.email || ''}
-              </p>
-            </div>
-          </div>
         </div>
-      </div>
+      </aside>
     </>
   );
 };

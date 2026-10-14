@@ -7,7 +7,6 @@ import { Links } from "./pages/Links.page.jsx";
 import { Notes } from "./pages/Notes.page.jsx";
 import { Sidebar } from "./components/Sidebar.jsx";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { Loader } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 
 function App() {
@@ -19,39 +18,10 @@ function App() {
 
   if (isCheckingAuth) {
     return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "100vh",
-          background: "var(--bg-base)",
-          flexDirection: "column",
-          gap: "16px",
-        }}
-      >
-        <div
-          style={{
-            width: 56,
-            height: 56,
-            border: "3px solid var(--border-primary)",
-            borderTop: "3px solid var(--accent-yellow)",
-            borderRadius: "50%",
-            animation: "spin 0.8s linear infinite",
-          }}
-        />
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        <p
-          style={{
-            color: "var(--text-secondary)",
-            fontFamily: "'Space Grotesk', sans-serif",
-            fontWeight: 700,
-            fontSize: "0.85rem",
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
-          }}
-        >
-          Loading...
+      <div className="flex items-center justify-center min-h-screen bg-[#111317] flex-col gap-4">
+        <div className="w-10 h-10 border-2 border-white/10 border-t-[#c0c1ff] rounded-full animate-spin" />
+        <p className="text-xs font-mono uppercase tracking-widest text-[#94a3b8]">
+          Initializing MindHub Core...
         </p>
       </div>
     );
@@ -60,58 +30,65 @@ function App() {
   return (
     <>
       <Toaster
-        position="bottom-left"
+        position="bottom-right"
         toastOptions={{
           style: {
-            background: "var(--bg-surface)",
-            color: "var(--text-primary)",
-            border: "2px solid var(--border-primary)",
-            fontFamily: "'Space Grotesk', sans-serif",
-            fontWeight: 600,
-            boxShadow: "3px 3px 0px var(--accent-yellow)",
-            borderRadius: "0",
+            background: "#1a1c1f",
+            color: "#e2e2e6",
+            border: "1px solid rgba(255, 255, 255, 0.1)",
+            fontFamily: "'Inter', sans-serif",
+            fontSize: "13px",
+            borderRadius: "8px",
+            boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.5)",
           },
           success: {
             iconTheme: {
-              primary: "var(--accent-yellow)",
-              secondary: "#000000",
+              primary: "#4edea3",
+              secondary: "#0c0e11",
             },
           },
           error: {
             iconTheme: {
-              primary: "var(--accent-coral)",
-              secondary: "#ffffff",
+              primary: "#ffb4ab",
+              secondary: "#0c0e11",
             },
           },
         }}
       />
       {authUser ? (
-        <div style={{ display: "flex", minHeight: "100vh", background: "var(--bg-base)" }}>
+        <div className="min-h-screen bg-[#111317] flex">
           <Sidebar />
-          {/* Content area — offset for sidebar on desktop */}
-          <div
-            style={{
-              flex: 1,
-              marginLeft: 0,
-              paddingTop: "60px",
-              width: "100%",
-            }}
-            className="main-content"
-          >
-            <style>{`
-              @media (min-width: 1024px) {
-                .main-content { margin-left: 72px; padding-top: 0 !important; }
-              }
-              @media (min-width: 1280px) {
-                .main-content { margin-left: 260px; }
-              }
-            `}</style>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/notes" element={<Notes />} />
-              <Route path="/links" element={<Links />} />
-              <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
+
+          {/* Main Area */}
+          <div className="flex-1 lg:ml-64 flex flex-col min-h-screen min-w-0">
+            {/* Top Tactical Status Header */}
+            <header className="h-14 bg-[#111317]/80 backdrop-blur-xl border-b border-white/5 sticky top-0 z-30 flex items-center justify-between px-6">
+              <div className="flex items-center gap-2 pl-10 lg:pl-0">
+                <span className="w-2 h-2 rounded-full bg-[#4edea3] animate-pulse" />
+                <span className="text-[11px] font-mono text-[#94a3b8] tracking-wider uppercase hidden sm:inline">
+                  Synapse Active • Local-First Memory
+                </span>
+                <span className="text-[11px] font-mono text-[#94a3b8] tracking-wider uppercase sm:hidden">
+                  MindHub Core
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#1a1c1f] text-[11px] font-mono text-[#94a3b8] border border-white/5">
+                  <span className="text-[#4edea3]">●</span>
+                  <span>TLS 1.3 • Zero-Loss Storage</span>
+                </div>
+              </div>
+            </header>
+
+            {/* Page Content */}
+            <main className="flex-1 w-full bg-[#111317]">
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/notes" element={<Notes />} />
+                <Route path="/links" element={<Links />} />
+                <Route path="*" element={<Navigate to="/" />} />
+              </Routes>
+            </main>
           </div>
         </div>
       ) : (
